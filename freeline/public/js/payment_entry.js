@@ -1,6 +1,6 @@
 frappe.ui.form.on("Payment Entry", {
 
-    filter: function(frm){
+    get_employee: function(frm){
 
     	$.each(frm.doc["references"],function(i, references)
 	    {
