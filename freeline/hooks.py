@@ -197,5 +197,5 @@ fixtures = [
                 "Payment Entry-employee"
             ]
         ]
-    ]}
+    ]},
 ]
