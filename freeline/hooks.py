@@ -194,8 +194,9 @@ fixtures = [
     {"dt": "Custom Field", "filters": [
         [
             "name", "in", [
-                "Payment Entry-employee"
+                "Sales Order-picker_warehouse"
             ]
         ]
     ]},
 ]
+
