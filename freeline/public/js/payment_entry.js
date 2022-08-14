@@ -12,12 +12,15 @@ frappe.ui.form.on("Payment Entry", {
     },
 
     before_save:function(frm){
-        frm.set_value("employee","");
-        $.each(frm.doc["references"],function(i, references)
-        {
-            if(references.employee_name != ""){
-                frm.set_value("employee",references.employee_name);
-            }
-        });
+        if(frm.doc["references"].length > 0){
+            frm.set_value("employee_id","");
+            $.each(frm.doc["references"],function(i, references)
+            {
+                if(references.employee_name != ""){
+                    frm.set_value("employee_name",references.employee_name);
+                }
+            });
+        }
+        
     },
 });
