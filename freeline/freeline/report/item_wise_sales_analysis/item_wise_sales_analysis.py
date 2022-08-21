@@ -374,7 +374,7 @@ def get_conditions(filters):
 	if filters.get("brand"):
 		conditions += """and (SELECT brand FROM `tabItem` where `tabItem`.name = `tabSales Invoice Item`.item_code) IN %(brand)s"""
 	if filters.get("sales_person"):
-		conditions += """and (SELECT sales_person FROM `tabSales Team` where `tabSales Team`.parent = `tabSales Invoice`.name) IN %(sales_person)s"""
+		conditions += """and `tabSales Invoice`.employee_name IN %(sales_person)s"""
 
 	if filters.get("item_group"):
 		conditions += """and ifnull(`tabSales Invoice Item`.item_group, '') = %(item_group)s"""
