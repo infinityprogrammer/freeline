@@ -72,6 +72,7 @@ def _execute(filters=None, additional_table_columns=None, additional_query_colum
 			"item_code": d.item_code,
 			"item_name": item_record.item_name if item_record else d.item_name,
 			"brand": d.brand,
+			"carton_factor": d.carton_factor,
 			"sales_person": d.sales_person,
 			"item_group": item_record.item_group if item_record else d.item_group,
 			"description": d.description,
@@ -151,8 +152,6 @@ def _execute(filters=None, additional_table_columns=None, additional_query_colum
 		data.append(total_row_map.get("total_row"))
 		skip_total_row = 1
 
-	print("********")
-	print(data)
 	return columns, data, None, None, None, skip_total_row
 
 
@@ -325,6 +324,12 @@ def get_columns(additional_table_columns, filters):
 			"width": 100,
 		},
 		{
+			"label": _("Carton Factor"),
+			"fieldname": "carton_factor",
+			"fieldtype": "Data",
+			"width": 80,
+		},
+		{
 			"label": _("Rate"),
 			"fieldname": "rate",
 			"fieldtype": "Float",
@@ -387,8 +392,8 @@ def get_conditions(filters):
 		conditions += get_group_by_conditions(filters, "Sales Invoice")
 
 	return conditions
-
-
+    
+    
 def get_group_by_conditions(filters, doctype):
 	if filters.get("group_by") == "Invoice":
 		return "ORDER BY `tab{0} Item`.parent desc".format(doctype)
@@ -420,6 +425,7 @@ def get_items(filters, additional_query_columns):
 			`tabSales Invoice Item`.item_code, `tabSales Invoice Item`.description,
    			(SELECT brand FROM `tabItem` where `tabItem`.name = `tabSales Invoice Item`.item_code) as brand,
 			(select GROUP_CONCAT(sales_person) from `tabSales Team` where `tabSales Team`.parent = `tabSales Invoice`.name) as sales_person,
+			(SELECT conversion_factor FROM `tabUOM Conversion Detail` uf where uf.uom = 'Carton' and uf.parent = `tabSales Invoice Item`.item_name) as carton_factor,
 			`tabSales Invoice Item`.`item_name`, `tabSales Invoice Item`.`item_group`,
 			`tabSales Invoice Item`.sales_order, `tabSales Invoice Item`.delivery_note,
 			`tabSales Invoice Item`.income_account, `tabSales Invoice Item`.cost_center,

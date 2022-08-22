@@ -67,7 +67,7 @@ frappe.query_reports["Item Wise Sales Analysis"] = {
 			get_data: function(txt) {
 				// return frappe.db.get_link_options("Sales Person", txt);
 				// frappe.query_report.set_filter_value('is_group', 0);
-				return frappe.db.get_link_options("Sales Person", txt, {is_group:0});
+				return frappe.db.get_link_options("Sales Person", txt);
 			},
 			"reqd": 1,
 		},
