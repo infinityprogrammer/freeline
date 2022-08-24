@@ -73,6 +73,7 @@ def _execute(filters=None, additional_table_columns=None, additional_query_colum
 			"item_name": item_record.item_name if item_record else d.item_name,
 			"brand": d.brand,
 			"carton_factor": d.carton_factor,
+			"qty_in_carton": d.qty_in_carton,
 			"sales_person": d.sales_person,
 			"item_group": item_record.item_group if item_record else d.item_group,
 			"description": d.description,
@@ -330,6 +331,12 @@ def get_columns(additional_table_columns, filters):
 			"width": 80,
 		},
 		{
+			"label": _("Qty in Carton"),
+			"fieldname": "qty_in_carton",
+			"fieldtype": "Data",
+			"width": 80,
+		},
+		{
 			"label": _("Rate"),
 			"fieldname": "rate",
 			"fieldtype": "Float",
@@ -426,6 +433,7 @@ def get_items(filters, additional_query_columns):
    			(SELECT brand FROM `tabItem` where `tabItem`.name = `tabSales Invoice Item`.item_code) as brand,
 			(select GROUP_CONCAT(sales_person) from `tabSales Team` where `tabSales Team`.parent = `tabSales Invoice`.name) as sales_person,
 			(SELECT conversion_factor FROM `tabUOM Conversion Detail` uf where uf.uom = 'Carton' and uf.parent = `tabSales Invoice Item`.item_name) as carton_factor,
+			(`tabSales Invoice Item`.stock_qty / (SELECT conversion_factor FROM `tabUOM Conversion Detail` uf where uf.uom = 'Carton' and uf.parent = `tabSales Invoice Item`.item_name)) as qty_in_carton,
 			`tabSales Invoice Item`.`item_name`, `tabSales Invoice Item`.`item_group`,
 			`tabSales Invoice Item`.sales_order, `tabSales Invoice Item`.delivery_note,
 			`tabSales Invoice Item`.income_account, `tabSales Invoice Item`.cost_center,
