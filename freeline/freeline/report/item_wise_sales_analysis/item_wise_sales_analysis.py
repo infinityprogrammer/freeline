@@ -384,9 +384,9 @@ def get_conditions(filters):
 	# if filters.get("brand"):
 	# 	conditions += """and ifnull(`tabSales Invoice Item`.brand, '') = %(brand)s"""
 	if filters.get("brand"):
-		conditions += """and (SELECT brand FROM `tabItem` where `tabItem`.name = `tabSales Invoice Item`.item_code) IN %(brand)s"""
+		conditions += """and (SELECT brand FROM `tabItem` where `tabItem`.name = `tabSales Invoice Item`.item_code) IN %(brand)s """
 	if filters.get("sales_person"):
-		conditions += """and `tabSales Invoice`.employee_name IN %(sales_person)s"""
+		conditions += """and `tabSales Invoice`.employee_name IN %(sales_person)s """
 
 	if filters.get("item_group"):
 		conditions += """and ifnull(`tabSales Invoice Item`.item_group, '') = %(item_group)s"""
@@ -420,6 +420,22 @@ def get_items(filters, additional_query_columns):
 	else:
 		additional_query_columns = ""
 
+	if filters.get("sales_person"):
+		sales_p = []
+		sales_p.append("A")
+		for ps in filters.get("sales_person"):
+			lft, rgt = frappe.db.get_value("Sales Person", ps, ["lft", "rgt"])
+			sales_pers = frappe.db.sql(
+				"""
+				select name from `tabSales Person` where lft >= %s and rgt <= %s and is_group = 0
+				""",
+				(lft, rgt),
+				as_dict=1,
+			)
+			for s in sales_pers:
+				sales_p.append(s.name)
+		filters['sales_person'] = sales_p
+		
 	return frappe.db.sql(
 		"""
 		select
