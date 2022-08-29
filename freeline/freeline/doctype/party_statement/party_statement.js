@@ -39,30 +39,47 @@ frappe.ui.form.on('Party Statement', {
 			freeze: true,
 			freeze_message: "Fetching Statements...",
 			callback: function(r) {
-				if(r.message.length > 0){
+				if(r.message){
+					console.log(r)
 					frm.clear_table("statement_details");
 					let invs = r.message
+					let bal = 0
 					for(let i=0; i < invs.length; i++) {
+						bal += (invs[i].debit_in_account_currency - invs[i].credit_in_account_currency)
 					  	let row = frm.add_child('statement_details', {
-						    purchase_invoice: invs[i].name,
-						    company: invs[i].company,
-						    supplier: invs[i].supplier,
-						    bill_no: invs[i].bill_no,
-						    grand_total: invs[i].grand_total,
-						    outstanding_amount: invs[i].outstanding_amount,
-						    allocated_amount: invs[i].outstanding_amount,
-						    cost_center: invs[i].cost_center,
-						    credit_to: invs[i].credit_to,
-						    paid_to: invs[i].paid_to,
-						    account_name: invs[i].account_name
+						    posting_date: invs[i].posting_date,
+						    reference_name: invs[i].voucher_no,
+						    customer: invs[i].party,
+						    debit_amount: invs[i].debit_in_account_currency,
+						    credit_amount: invs[i].credit_in_account_currency,
+						    balance: bal,
+						    document_type: invs[i].voucher_type,
+						    remarks: invs[i].remarks,
+							against_voucher: invs[i].against_voucher,
 						});
 					}
-					// frappe.msgprint(__('Data present'));
+					//frappe.msgprint(__('Data present'));
 				}else{
 					frappe.msgprint(__('No data found for the applier filters'));
 				}
 				frm.refresh_field('statement_details');
 			}
 		});
+    },
+
+	before_save:function(frm){
+        frm.trigger("net_employee_balance");
+    },
+
+	net_employee_balance:function(frm){
+        var dr= 0
+        var cr= 0
+        $.each(frm.doc["statement_details"],function(i, statement_details)
+	    {
+             dr += statement_details.debit_amount;
+             cr += statement_details.credit_amount;
+	    });
+		let diff = dr-cr
+        frm.set_value("party_balance",diff);
     },
 });

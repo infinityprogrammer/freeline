@@ -232,29 +232,40 @@ def get_columns():
 
 def get_bin_list(filters):
 	conditions = []
-
+	conditions_qry = "where 1=1 "
 	if filters.item_code:
 		conditions.append("item_code = '%s' " % filters.item_code)
+		conditions_qry += "and item_code = %(item_code)s"
 
-	if filters.warehouse:
-		warehouse_details = frappe.db.get_value(
-			"Warehouse", filters.warehouse, ["lft", "rgt"], as_dict=1
-		)
-
-		if warehouse_details:
-			conditions.append(
-				" exists (select name from `tabWarehouse` wh \
-				where wh.lft >= %s and wh.rgt <= %s and bin.warehouse = wh.name)"
-				% (warehouse_details.lft, warehouse_details.rgt)
+	# if filters.warehouse:
+	# 	warehouse_details = frappe.db.get_value(
+	# 		"Warehouse", filters.warehouse, ["lft", "rgt"], as_dict=1
+	# 	)
+	
+	if filters.get("warehouse"):
+		wh_list = []
+		wh_list.append("A")
+		for ps in filters.get("warehouse"):
+			lft, rgt = frappe.db.get_value("Warehouse", ps, ["lft", "rgt"])
+			child_wh = frappe.db.sql(
+				"""
+				select name from `tabWarehouse` where lft >= %s and rgt <= %s and is_group = 0
+				""",
+				(lft, rgt),
+				as_dict=1,
 			)
+			for w in child_wh:
+				wh_list.append(w.name)
+		filters['warehouse'] = wh_list
+		conditions_qry += "and warehouse in %(warehouse)s"
 
 	bin_list = frappe.db.sql(
 		"""select item_code, warehouse, actual_qty, planned_qty, indented_qty,
 		ordered_qty, reserved_qty, reserved_qty_for_production, reserved_qty_for_sub_contract, projected_qty
-		from tabBin bin {conditions} order by item_code, warehouse
+		from tabBin bin {conditions_qry} order by item_code, warehouse
 		""".format(
-			conditions=" where " + " and ".join(conditions) if conditions else ""
-		),
+			conditions_qry=conditions_qry
+		),filters,
 		as_dict=1,
 	)
 
