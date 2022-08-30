@@ -16,7 +16,10 @@
   "party_balance",
   "section_break_11",
   "get_statement",
-  "statement_details"
+  "statement_details",
+  "section_break_12",
+  "get_ageing",
+  "ageing_details"
  ],
  "fields": [
   {
@@ -26,12 +29,14 @@
   {
    "fieldname": "from_date",
    "fieldtype": "Date",
-   "label": "From Date"
+   "label": "From Date",
+   "reqd": 1
   },
   {
    "fieldname": "to_date",
    "fieldtype": "Date",
-   "label": "To Date"
+   "label": "To Date",
+   "reqd": 1
   },
   {
    "fieldname": "ledger_filters_section",
@@ -48,7 +53,8 @@
    "fieldname": "employee",
    "fieldtype": "Link",
    "label": "Employee",
-   "options": "Employee"
+   "options": "Employee",
+   "reqd": 1
   },
   {
    "fetch_from": "employee.employee_name",
@@ -80,11 +86,26 @@
    "label": "Company",
    "options": "Company",
    "reqd": 1
+  },
+  {
+   "fieldname": "section_break_12",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "ageing_details",
+   "fieldtype": "Table",
+   "label": "Ageing Details",
+   "options": "Ageing Details"
+  },
+  {
+   "fieldname": "get_ageing",
+   "fieldtype": "Button",
+   "label": "Get Ageing"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-08-27 11:59:08.184579",
+ "modified": "2022-08-29 15:21:37.604576",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Party Statement",

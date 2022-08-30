@@ -67,6 +67,36 @@ frappe.ui.form.on('Party Statement', {
 		});
     },
 
+	get_ageing: function(frm){
+    	// first try to test by uncommenting 
+    	frm.clear_table("ageing_details");
+    	frm.call({
+			method: "get_party_ageing",
+			doc:frm.doc,
+			freeze: true,
+			freeze_message: "Fetching Ageing...",
+			callback: function(r) {
+				if(r.message){
+					console.log(r)
+					frm.clear_table("ageing_details");
+					let invs = r.message
+					for(let i=0; i < invs.length; i++) {
+					  	let row = frm.add_child('ageing_details', {
+							party_type: "Customer",
+						    party: invs[i].party,
+						    party_name: invs[i].party_name,
+						    balance: invs[i].net_balance
+						});
+					}
+					//frappe.msgprint(__('Data present'));
+				}else{
+					frappe.msgprint(__('No data found for the applier filters'));
+				}
+				frm.refresh_field('ageing_details');
+			}
+		});
+    },
+
 	before_save:function(frm){
         frm.trigger("net_employee_balance");
     },

@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from . import __version__ as app_version
 
 app_name = "freeline"
@@ -201,3 +202,10 @@ fixtures = [
     ]},
 ]
 
+jenv = {
+    "methods": [
+        "get_statement_customer:freeline.freeline.doctype.party_statement.party_statement.get_statement_customer",
+        "get_customer_statement_details:freeline.freeline.doctype.party_statement.party_statement.get_customer_statement_details",
+        "get_customer_opening:freeline.freeline.doctype.party_statement.party_statement.get_customer_opening",
+    ]
+}
