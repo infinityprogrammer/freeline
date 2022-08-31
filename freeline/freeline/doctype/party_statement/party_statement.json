@@ -1,12 +1,14 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "naming_series:",
  "creation": "2022-08-15 12:24:27.884531",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "ledger_filters_section",
+  "naming_series",
   "company",
   "employee",
   "employee_name",
@@ -101,11 +103,18 @@
    "fieldname": "get_ageing",
    "fieldtype": "Button",
    "label": "Get Ageing"
+  },
+  {
+   "default": "SOA/.employee./.##",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "SOA/.employee./.##"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-08-29 15:21:37.604576",
+ "modified": "2022-08-31 09:26:33.771013",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Party Statement",

@@ -85,7 +85,12 @@ frappe.ui.form.on('Party Statement', {
 							party_type: "Customer",
 						    party: invs[i].party,
 						    party_name: invs[i].party_name,
-						    balance: invs[i].net_balance
+						    balance: invs[i].net_balance,
+							opening: invs[i].opening,
+							age_30: invs[i].first,
+							age_60: invs[i].second,
+							age_90: invs[i].third,
+							above_120: invs[i].ext,
 						});
 					}
 					//frappe.msgprint(__('Data present'));
