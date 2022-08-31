@@ -26,7 +26,7 @@ class PartyStatement(Document):
 			condition += " and DATEDIFF(CURDATE(),due_date) > 90"
 
 		age_day = frappe.db.sql(""" SELECT IFNULL(SUM(outstanding_amount),0)age_balance FROM `tabSales Invoice`
-									WHERE customer_name = %(customer)s and company = %(company)s and employee_name = %(employee)s {condition}""".format(condition=condition),
+									WHERE customer = %(customer)s and company = %(company)s and employee_name = %(employee)s {condition}""".format(condition=condition),
                                   	{'customer': customer, 'employee':self.get("employee_name"),'company':self.get("company")}, as_dict=True)
 		return age_day
 
