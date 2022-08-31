@@ -34,7 +34,8 @@ class PartyStatement(Document):
 	def get_party_statement(self):
 		
 		gl_entries = frappe.db.sql(""" SELECT gl.posting_date,voucher_no,party,debit_in_account_currency,
-									credit_in_account_currency,against_voucher,employee_name,voucher_type,gl.remarks 
+									credit_in_account_currency,against_voucher,employee_name,voucher_type,gl.remarks,
+									(SELECT user_remark FROM `tabJournal Entry` j where j.name = gl.voucher_no)jv_remarks
 									FROM `tabGL Entry` gl LEFT JOIN `tabSales Invoice` inv ON inv.name = gl.against_voucher
 									where gl.is_cancelled = 0 and inv.employee_name = %(employee)s and gl.posting_date between %(from_date)s and %(to_date)s order by 1""",
                                   {'employee': self.get("employee_name"),'from_date':self.get("from_date"),'to_date':self.get("to_date")}, as_dict=True)
@@ -80,7 +81,8 @@ def get_statement_customer(doc_name):
 @frappe.whitelist()
 def get_customer_statement_details(company,from_date,to_date,customer,employee):
 	statement_details = frappe.db.sql("""SELECT gl.posting_date,voucher_no,party,debit_in_account_currency,
-										credit_in_account_currency,against_voucher,employee_name,voucher_type,gl.remarks,inv.due_date
+										credit_in_account_currency,against_voucher,employee_name,voucher_type,gl.remarks,inv.due_date,
+										(SELECT user_remark FROM `tabJournal Entry` j where j.name = gl.voucher_no)jv_remarks
 										FROM `tabGL Entry` gl LEFT JOIN `tabSales Invoice` inv ON inv.name = gl.against_voucher
 										where
 										inv.employee_name = %(employee)s and gl.party_type ='Customer' and gl.party = %(customer)s 
