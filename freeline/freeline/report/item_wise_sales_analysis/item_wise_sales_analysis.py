@@ -455,7 +455,7 @@ def get_items(filters, additional_query_columns):
 			`tabSales Invoice Item`.item_code, `tabSales Invoice Item`.description,
    			(SELECT brand FROM `tabItem` where `tabItem`.name = `tabSales Invoice Item`.item_code) as brand,
 			(select GROUP_CONCAT(sales_person) from `tabSales Team` where `tabSales Team`.parent = `tabSales Invoice`.name) as sales_person,
-			(SELECT GROUP_CONCAT(barcode) FROM `tabItem Barcode` where `tabItem Barcode`.parent = `tabSales Invoice Item`.item_name) as barcode,
+			(SELECT GROUP_CONCAT(barcode) FROM `tabItem Barcode` where `tabItem Barcode`.parent = `tabSales Invoice Item`.item_code) as barcode,
 			(SELECT conversion_factor FROM `tabUOM Conversion Detail` uf where uf.uom = 'Carton' and uf.parent = `tabSales Invoice Item`.item_name) as carton_factor,
 			(`tabSales Invoice Item`.stock_qty / (SELECT conversion_factor FROM `tabUOM Conversion Detail` uf where uf.uom = 'Carton' and uf.parent = `tabSales Invoice Item`.item_name)) as qty_in_carton,
 			`tabSales Invoice Item`.`item_name`, `tabSales Invoice Item`.`item_group`,
