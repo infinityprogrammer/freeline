@@ -23,7 +23,7 @@ class PartyStatement(Document):
 		elif days == "3":
 			condition += " and DATEDIFF(CURDATE(),due_date) between 60 and 89"
 		else:
-			condition += " and DATEDIFF(CURDATE(),due_date) > 90"
+			condition += " and DATEDIFF(CURDATE(),due_date) > 89"
 
 		age_day = frappe.db.sql(""" SELECT IFNULL(SUM(outstanding_amount),0)age_balance FROM `tabSales Invoice`
 									WHERE customer = %(customer)s and company = %(company)s and employee_name = %(employee)s {condition}""".format(condition=condition),
