@@ -17,7 +17,7 @@ class PartyStatement(Document):
 	def get_customer_age_days(self,days,customer):
 		condition = ""
 		if days == "1":
-			condition += " and DATEDIFF(CURDATE(),due_date) < 30"
+			condition += " and DATEDIFF(CURDATE(),due_date) <= 30"
 		elif days == "2":
 			condition += " and DATEDIFF(CURDATE(),due_date) between 31 and 59"
 		elif days == "3":

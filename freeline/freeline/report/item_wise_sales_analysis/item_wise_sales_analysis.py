@@ -75,6 +75,7 @@ def _execute(filters=None, additional_table_columns=None, additional_query_colum
 			"carton_factor": d.carton_factor,
 			"qty_in_carton": d.qty_in_carton,
 			"sales_person": d.sales_person,
+			"employee_name": d.employee_name,
 			"item_group": item_record.item_group if item_record else d.item_group,
 			"description": d.description,
 			"invoice": d.parent,
@@ -104,6 +105,7 @@ def _execute(filters=None, additional_table_columns=None, additional_query_colum
 				"cost_center": d.cost_center,
 				"stock_qty": d.stock_qty,
 				"stock_uom": d.stock_uom,
+				"supplier_no": d.supplier_no,
 			}
 		)
 
@@ -283,6 +285,12 @@ def get_columns(additional_table_columns, filters):
 			"width": 120,
 		},
 		{
+			"label": _("Employee Name"),
+			"fieldname": "employee_name",
+			"fieldtype": "Data",
+			"width": 120,
+		},
+		{
 			"label": _("Company"),
 			"fieldname": "company",
 			"fieldtype": "Link",
@@ -357,6 +365,12 @@ def get_columns(additional_table_columns, filters):
 			"fieldtype": "Data",
 			"width": 100,
 		},
+		{
+			"label": _("Supplier Ref No"),
+			"fieldname": "supplier_no",
+			"fieldtype": "Data",
+			"width": 100,
+		},
 	]
 
 	if filters.get("group_by"):
@@ -393,7 +407,7 @@ def get_conditions(filters):
 	if filters.get("brand"):
 		conditions += """and (SELECT brand FROM `tabItem` where `tabItem`.name = `tabSales Invoice Item`.item_code) IN %(brand)s """
 	if filters.get("sales_person"):
-		conditions += """and `tabSales Invoice`.employee_name IN %(sales_person)s """
+		conditions += """and `tabSales Invoice`.employee IN %(sales_person)s """
 
 	if filters.get("item_group"):
 		conditions += """and ifnull(`tabSales Invoice Item`.item_group, '') = %(item_group)s"""
@@ -434,19 +448,20 @@ def get_items(filters, additional_query_columns):
 			lft, rgt = frappe.db.get_value("Sales Person", ps, ["lft", "rgt"])
 			sales_pers = frappe.db.sql(
 				"""
-				select name from `tabSales Person` where lft >= %s and rgt <= %s and is_group = 0
+				select employee from `tabSales Person` where lft >= %s and rgt <= %s and is_group = 0
 				""",
 				(lft, rgt),
 				as_dict=1,
 			)
 			for s in sales_pers:
-				sales_p.append(s.name)
+				sales_p.append(s.employee)
 		filters['sales_person'] = sales_p
-		
+		print("**************")
+		print(filters['sales_person'])
 	return frappe.db.sql(
 		"""
 		select
-			`tabSales Invoice Item`.name, `tabSales Invoice Item`.parent,
+			`tabSales Invoice Item`.name, `tabSales Invoice Item`.parent,`tabSales Invoice`.employee_name,
 			`tabSales Invoice`.posting_date, `tabSales Invoice`.debit_to,
 			`tabSales Invoice`.unrealized_profit_loss_account,
 			`tabSales Invoice`.is_internal_customer,
@@ -456,8 +471,9 @@ def get_items(filters, additional_query_columns):
    			(SELECT brand FROM `tabItem` where `tabItem`.name = `tabSales Invoice Item`.item_code) as brand,
 			(select GROUP_CONCAT(sales_person) from `tabSales Team` where `tabSales Team`.parent = `tabSales Invoice`.name) as sales_person,
 			(SELECT GROUP_CONCAT(barcode) FROM `tabItem Barcode` where `tabItem Barcode`.parent = `tabSales Invoice Item`.item_code) as barcode,
-			(SELECT conversion_factor FROM `tabUOM Conversion Detail` uf where uf.uom = 'Carton' and uf.parent = `tabSales Invoice Item`.item_name) as carton_factor,
-			(`tabSales Invoice Item`.stock_qty / (SELECT conversion_factor FROM `tabUOM Conversion Detail` uf where uf.uom = 'Carton' and uf.parent = `tabSales Invoice Item`.item_name)) as qty_in_carton,
+			(SELECT conversion_factor FROM `tabUOM Conversion Detail` uf where uf.parent = `tabSales Invoice Item`.item_code and uf.uom = 'Carton') as carton_factor,
+			(select GROUP_CONCAT(supplier_part_no) from `tabItem Supplier` where `tabItem Supplier`.parent = `tabSales Invoice Item`.item_code) as supplier_no,
+			(`tabSales Invoice Item`.stock_qty / (SELECT conversion_factor FROM `tabUOM Conversion Detail` uf where uf.parent = `tabSales Invoice Item`.item_code and uf.uom = 'Carton')) as qty_in_carton,
 			`tabSales Invoice Item`.`item_name`, `tabSales Invoice Item`.`item_group`,
 			`tabSales Invoice Item`.sales_order, `tabSales Invoice Item`.delivery_note,
 			`tabSales Invoice Item`.income_account, `tabSales Invoice Item`.cost_center,
