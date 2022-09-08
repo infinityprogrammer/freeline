@@ -76,6 +76,7 @@ def _execute(filters=None, additional_table_columns=None, additional_query_colum
 			"qty_in_carton": d.qty_in_carton,
 			"sales_person": d.sales_person,
 			"employee_name": d.employee_name,
+			"employee": d.employee,
 			"item_group": item_record.item_group if item_record else d.item_group,
 			"description": d.description,
 			"invoice": d.parent,
@@ -285,6 +286,13 @@ def get_columns(additional_table_columns, filters):
 			"width": 120,
 		},
 		{
+			"label": _("Employee"),
+			"fieldname": "employee",
+			"fieldtype": "Link",
+			"options": "Employee",
+			"width": 120,
+		},
+		{
 			"label": _("Employee Name"),
 			"fieldname": "employee_name",
 			"fieldtype": "Data",
@@ -461,7 +469,7 @@ def get_items(filters, additional_query_columns):
 	return frappe.db.sql(
 		"""
 		select
-			`tabSales Invoice Item`.name, `tabSales Invoice Item`.parent,`tabSales Invoice`.employee_name,
+			`tabSales Invoice Item`.name, `tabSales Invoice Item`.parent,`tabSales Invoice`.employee_name,`tabSales Invoice`.employee,
 			`tabSales Invoice`.posting_date, `tabSales Invoice`.debit_to,
 			`tabSales Invoice`.unrealized_profit_loss_account,
 			`tabSales Invoice`.is_internal_customer,
