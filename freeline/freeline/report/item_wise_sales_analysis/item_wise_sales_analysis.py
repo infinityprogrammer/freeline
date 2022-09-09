@@ -472,8 +472,7 @@ def get_items(filters, additional_query_columns):
 			for s in sales_pers:
 				sales_p.append(s.employee)
 		filters['sales_person'] = sales_p
-		print("**************")
-		print(filters['sales_person'])
+		
 	return frappe.db.sql(
 		"""
 		select
