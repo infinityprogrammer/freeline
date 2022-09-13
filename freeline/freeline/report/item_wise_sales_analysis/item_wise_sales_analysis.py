@@ -476,7 +476,7 @@ def get_items(filters, additional_query_columns):
 	return frappe.db.sql(
 		"""
 		select
-			`tabSales Invoice Item`.name, `tabSales Invoice Item`.parent,`tabSales Invoice`.employee_name,`tabSales Invoice`.employee,`tabSales Invoice Item`.discount_amount,
+			`tabSales Invoice Item`.name, `tabSales Invoice Item`.parent,`tabSales Invoice`.employee_name,`tabSales Invoice`.employee,(`tabSales Invoice Item`.discount_amount*`tabSales Invoice Item`.qty)discount_amount,
 			`tabSales Invoice`.posting_date, `tabSales Invoice`.debit_to,
 			`tabSales Invoice`.unrealized_profit_loss_account,
 			`tabSales Invoice`.is_internal_customer,

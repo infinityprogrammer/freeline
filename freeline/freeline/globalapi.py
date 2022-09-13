@@ -60,15 +60,37 @@ def get_total_sale_order_mtd():
 # custom APIs for SFA
 
 @frappe.whitelist()
-def get_all_sale_order_items():
-    sale_order_items = frappe.db.sql(""" SELECT a.name,item_code,qty FROM `tabSales Order` a, `tabSales Order Item` b
-                                where a.name = b.parent
-                                and a.docstatus = 1""", as_dict=True)
-    return sale_order_items
+def get_all_order_items_by_name():
+    sale_order_name = frappe.db.sql(""" SELECT name FROM `tabSales Order` 
+                                where docstatus = 1""", as_dict=True)
+    sales_order_items = []
+    for d in sale_order_name:
+        item_details = frappe._dict()
+        item_details['name'] = d.name
+        items = frappe.db.sql(""" SELECT item_code,qty FROM `tabSales Order Item` b
+                                where b.parent =  %(parent)s
+                                and b.docstatus = 1""",{'parent': d.name}, as_dict=True)
+        items_dict = []
+        for i in items:
+            items_dict.append(i)
+        item_details.update({"items": items_dict})
+        sales_order_items.append(item_details)
+    return sales_order_items
 
 @frappe.whitelist()
-def get_all_sale_invoice_items():
-    sale_order_items = frappe.db.sql(""" SELECT a.name,item_code,qty FROM `tabSales Invoice` a, `tabSales Invoice Item` b
-                                where a.name = b.parent
-                                and a.docstatus = 1""", as_dict=True)
-    return sale_order_items
+def get_all_invoice_items_by_name():
+    sale_invoice_name = frappe.db.sql(""" SELECT name FROM `tabSales Invoice`
+                                where docstatus = 1""", as_dict=True)
+    sales_invoice_items = []
+    for d in sale_invoice_name:
+        item_details = frappe._dict()
+        item_details['name'] = d.name
+        items = frappe.db.sql(""" SELECT item_code,qty FROM `tabSales Invoice Item` b
+                                    where b.parent =  %(parent)s
+                                    and b.docstatus = 1""",{'parent': d.name}, as_dict=True)
+        items_dict = []
+        for i in items:
+            items_dict.append(i)
+        item_details.update({"items": items_dict})
+        sales_invoice_items.append(item_details)
+    return sales_invoice_items
