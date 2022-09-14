@@ -9,9 +9,9 @@ class PartyStatement(Document):
 	def get_opening_balance(self,customer):
 		opening_balance = frappe.db.sql(""" SELECT ifnull(sum(debit_in_account_currency - credit_in_account_currency),0)net_balance
 										FROM `tabGL Entry` gl LEFT JOIN `tabSales Invoice` inv ON inv.name = gl.against_voucher
-										where inv.employee_name = %(employee)s and party_type = 'Customer' and gl.party = %(customer)s 
+										where inv.employee = %(employee)s and party_type = 'Customer' and gl.party = %(customer)s 
           								AND gl.posting_date < %(from_date)s and gl.company = %(company)s""",
-                                  	{'employee': self.get("employee_name"), 'customer':customer,'from_date':self.get("from_date"),'company':self.get("company")}, as_dict=True)
+                                  	{'employee': self.get("employee"), 'customer':customer,'from_date':self.get("from_date"),'company':self.get("company")}, as_dict=True)
 		return opening_balance;
 
 	def get_customer_age_days(self,days,customer):
@@ -26,8 +26,8 @@ class PartyStatement(Document):
 			condition += " and DATEDIFF(CURDATE(),due_date) > 89"
 
 		age_day = frappe.db.sql(""" SELECT IFNULL(SUM(outstanding_amount),0)age_balance FROM `tabSales Invoice`
-									WHERE customer = %(customer)s and company = %(company)s and employee_name = %(employee)s {condition}""".format(condition=condition),
-                                  	{'customer': customer, 'employee':self.get("employee_name"),'company':self.get("company")}, as_dict=True)
+									WHERE customer = %(customer)s and company = %(company)s and employee = %(employee)s {condition}""".format(condition=condition),
+                                  	{'customer': customer, 'employee':self.get("employee"),'company':self.get("company")}, as_dict=True)
 		return age_day
 
 	@frappe.whitelist()
@@ -37,8 +37,8 @@ class PartyStatement(Document):
 									credit_in_account_currency,against_voucher,employee_name,voucher_type,gl.remarks,
 									(SELECT user_remark FROM `tabJournal Entry` j where j.name = gl.voucher_no)jv_remarks
 									FROM `tabGL Entry` gl LEFT JOIN `tabSales Invoice` inv ON inv.name = gl.against_voucher
-									where gl.is_cancelled = 0 and inv.employee_name = %(employee)s and gl.posting_date between %(from_date)s and %(to_date)s order by 1""",
-                                  {'employee': self.get("employee_name"),'from_date':self.get("from_date"),'to_date':self.get("to_date")}, as_dict=True)
+									where gl.is_cancelled = 0 and inv.employee = %(employee)s and gl.posting_date between %(from_date)s and %(to_date)s order by 1""",
+                                  {'employee': self.get("employee"),'from_date':self.get("from_date"),'to_date':self.get("to_date")}, as_dict=True)
 		return gl_entries;
 
 	@frappe.whitelist()
@@ -46,9 +46,9 @@ class PartyStatement(Document):
 		
 		age_entries = frappe.db.sql("""SELECT party_type,party,sum(debit_in_account_currency - credit_in_account_currency)net_balance
 									FROM `tabGL Entry` gl LEFT JOIN `tabSales Invoice` inv ON inv.name = gl.against_voucher
-									where inv.employee_name = %(employee)s and party_type = 'Customer' and gl.posting_date between %(from_date)s and %(to_date)s group by party_type,party 
+									where inv.employee = %(employee)s and party_type = 'Customer' and gl.posting_date between %(from_date)s and %(to_date)s group by party_type,party 
          							having sum(debit_in_account_currency - credit_in_account_currency) != 0 """,
-                                  {'employee': self.get("employee_name"),'from_date':self.get("from_date"),'to_date':self.get("to_date")}, as_dict=True)
+                                  {'employee': self.get("employee"),'from_date':self.get("from_date"),'to_date':self.get("to_date")}, as_dict=True)
 		for age_ent in age_entries:
 			age_ent['opening'] = "0"
 			opening_amt = self.get_opening_balance(age_ent.party)
@@ -85,7 +85,7 @@ def get_customer_statement_details(company,from_date,to_date,customer,employee):
 										(SELECT user_remark FROM `tabJournal Entry` j where j.name = gl.voucher_no)jv_remarks
 										FROM `tabGL Entry` gl LEFT JOIN `tabSales Invoice` inv ON inv.name = gl.against_voucher
 										where
-										inv.employee_name = %(employee)s and gl.party_type ='Customer' and gl.party = %(customer)s 
+										inv.employee = %(employee)s and gl.party_type ='Customer' and gl.party = %(customer)s 
           								and gl.posting_date between %(from_date)s and %(to_date)s and is_cancelled=0 and gl.company = %(company)s  order by 1""",
                                   		{'employee': employee,'customer':customer,'from_date':from_date,'to_date':to_date,'company':company}, as_dict=True)
 	return statement_details;
@@ -94,7 +94,7 @@ def get_customer_statement_details(company,from_date,to_date,customer,employee):
 def get_customer_opening(company,employee, customer, from_date):
 	opening_balance = frappe.db.sql(""" SELECT ifnull(sum(debit_in_account_currency - credit_in_account_currency),0)net_balance
 										FROM `tabGL Entry` gl LEFT JOIN `tabSales Invoice` inv ON inv.name = gl.against_voucher
-										where inv.employee_name = %(employee)s and party_type = 'Customer' and gl.party = %(customer)s 
+										where inv.employee = %(employee)s and party_type = 'Customer' and gl.party = %(customer)s 
           								AND gl.posting_date < %(from_date)s and gl.company = %(company)s""",
                                   	{'employee': employee, 'customer':customer,'from_date':from_date,'company':company}, as_dict=True)
 	return opening_balance;
