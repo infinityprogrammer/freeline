@@ -46,8 +46,6 @@ def get_total_sale_order_mtd():
     currentDate = datetime.date.today()
     firstDayOfMonth = datetime.date(currentDate.year, currentDate.month, 1)
     context = {}
-    # print("filters ")
-    # print(filters)
     mtd_sale = frappe.db.sql(""" SELECT ifnull(sum(grand_total),0)sale FROM `tabSales Order` where status != 'Closed'
                                 and per_delivered = 100 and per_billed < 100
                                 and docstatus = 1 AND transaction_date between %(start_date)s and %(end_date)s""",
