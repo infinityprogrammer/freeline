@@ -55,8 +55,11 @@ frappe.query_reports["Projected Stock"] = {
 		{
 			"fieldname":"brand",
 			"label": __("Brand"),
-			"fieldtype": "Link",
-			"options": "Brand"
+			"fieldtype": "MultiSelectList",
+			"options": "Brand",
+			get_data: function(txt) {
+				return frappe.db.get_link_options("Brand", txt);
+			}
 		},
 		{
 			"fieldname":"include_uom",

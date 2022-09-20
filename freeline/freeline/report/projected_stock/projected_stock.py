@@ -18,7 +18,7 @@ def execute(filters=None):
 	include_uom = filters.get("include_uom")
 	columns = get_columns()
 	bin_list = get_bin_list(filters)
-	item_map = get_item_map(filters.get("item_code"), include_uom)
+	item_map = get_item_map(filters.get("item_code"), include_uom,filters)
 
 	warehouse_company = {}
 	data = []
@@ -34,8 +34,8 @@ def execute(filters=None):
 		company = warehouse_company.setdefault(
 			bin.warehouse, frappe.db.get_value("Warehouse", bin.warehouse, "company")
 		)
-
-		if filters.brand and filters.brand != item.brand:
+		
+		if filters.brand and item.brand not in filters.get("brand"):
 			continue
 
 		elif filters.item_group and filters.item_group != item.item_group:
@@ -272,12 +272,13 @@ def get_bin_list(filters):
 	return bin_list
 
 
-def get_item_map(item_code, include_uom):
+def get_item_map(item_code, include_uom,filters):
 	"""Optimization: get only the item doc and re_order_levels table"""
 
 	condition = ""
 	if item_code:
 		condition = "and item_code = {0}".format(frappe.db.escape(item_code, percent=False))
+	
 
 	cf_field = cf_join = ""
 	if include_uom:
