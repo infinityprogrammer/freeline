@@ -22,7 +22,8 @@
   "section_break_12",
   "get_ageing",
   "ageing_details",
-  "include_ageing"
+  "include_ageing",
+  "include_statement"
  ],
  "fields": [
   {
@@ -117,11 +118,17 @@
    "fieldname": "include_ageing",
    "fieldtype": "Check",
    "label": "Include Ageing"
+  },
+  {
+   "default": "0",
+   "fieldname": "include_statement",
+   "fieldtype": "Check",
+   "label": "Include Statement"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-09-04 15:09:25.325813",
+ "modified": "2022-09-20 15:28:48.609506",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Party Statement",
