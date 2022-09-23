@@ -12,6 +12,9 @@
   "company",
   "employee",
   "employee_name",
+  "customer",
+  "customer_name",
+  "is_customer_statement",
   "column_break_3",
   "from_date",
   "to_date",
@@ -54,13 +57,15 @@
    "read_only": 1
   },
   {
+   "depends_on": "eval:doc.is_customer_statement == 0",
    "fieldname": "employee",
    "fieldtype": "Link",
    "label": "Employee",
-   "options": "Employee",
-   "reqd": 1
+   "mandatory_depends_on": "eval:doc.is_customer_statement == 0",
+   "options": "Employee"
   },
   {
+   "depends_on": "eval:doc.is_customer_statement == 0",
    "fetch_from": "employee.employee_name",
    "fieldname": "employee_name",
    "fieldtype": "Data",
@@ -124,11 +129,33 @@
    "fieldname": "include_statement",
    "fieldtype": "Check",
    "label": "Include Statement"
+  },
+  {
+   "depends_on": "eval:doc.is_customer_statement",
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "mandatory_depends_on": "eval:doc.is_customer_statement",
+   "options": "Customer"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_customer_statement",
+   "fieldtype": "Check",
+   "label": "Is Customer Statement "
+  },
+  {
+   "depends_on": "eval:doc.is_customer_statement",
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-09-20 15:28:48.609506",
+ "modified": "2022-09-22 15:25:33.051492",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Party Statement",
