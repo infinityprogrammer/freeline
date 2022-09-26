@@ -178,7 +178,8 @@ def get_dist_employee(customer,from_date,to_date,company):
 
 @frappe.whitelist()
 def sales_rep_statement_details(company,from_date,to_date,customer,employee):
-	statement_details = frappe.db.sql("""SELECT gl.posting_date,party_type,party,debit_in_account_currency,credit_in_account_currency,voucher_no,voucher_type,
+	statement_details = frappe.db.sql("""SELECT gl.posting_date,party_type,party,round(debit_in_account_currency,2)debit_in_account_currency,
+                                   				round(credit_in_account_currency,2)credit_in_account_currency,voucher_no,voucher_type,
 												against_voucher_type,against_voucher,employee,employee_name,gl.remarks 
 												FROM `tabGL Entry` gl LEFT JOIN `tabSales Invoice` inv ON inv.name = gl.against_voucher
 												where party_type = 'Customer' and party = %(customer)s and is_cancelled = 0 and gl.company = %(company)s
@@ -188,7 +189,8 @@ def sales_rep_statement_details(company,from_date,to_date,customer,employee):
 
 @frappe.whitelist()
 def emp_null_statement_details(company,from_date,to_date,customer):
-	statement_details = frappe.db.sql("""SELECT gl.posting_date,party_type,party,debit_in_account_currency,credit_in_account_currency,voucher_no,voucher_type,
+	statement_details = frappe.db.sql("""SELECT gl.posting_date,party_type,party,round(debit_in_account_currency,2)debit_in_account_currency,
+                                   				round(credit_in_account_currency,2)credit_in_account_currency,voucher_no,voucher_type,
 												against_voucher_type,against_voucher,employee,employee_name,gl.remarks 
 												FROM `tabGL Entry` gl LEFT JOIN `tabSales Invoice` inv ON inv.name = gl.against_voucher
 												where party_type = 'Customer' and party = %(customer)s and is_cancelled = 0 and gl.company = %(company)s
