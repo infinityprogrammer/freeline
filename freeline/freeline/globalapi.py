@@ -92,3 +92,17 @@ def get_all_invoice_items_by_name():
         item_details.update({"items": items_dict})
         sales_invoice_items.append(item_details)
     return sales_invoice_items
+
+@frappe.whitelist()
+def get_overdue_outstanding(filters):
+    overdue_outstand = frappe.db.sql(""" SELECT ifnull(sum(outstanding_amount),0)amount FROM `tabSales Invoice` where company = %(company)s and docstatus = 1""",{'company':'INFINITY'}, as_dict=True)
+    
+    overdue_outstand_val = overdue_outstand[0].amount
+    return overdue_outstand_val
+
+@frappe.whitelist()
+def get_item_barcode(item_code):
+    barcode = frappe.db.sql(""" SELECT GROUP_CONCAT(barcode)barcode_str FROM `tabItem Barcode` where `tabItem Barcode`.parent = %(item_code)s  """,{'item_code':item_code}, as_dict=True)
+    
+    barcode_val = barcode[0].barcode_str
+    return barcode_val

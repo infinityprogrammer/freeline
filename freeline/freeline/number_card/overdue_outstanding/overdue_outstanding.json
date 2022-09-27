@@ -1,0 +1,22 @@
+{
+ "creation": "2022-09-26 12:12:27.345602",
+ "docstatus": 0,
+ "doctype": "Number Card",
+ "filters_config": "[{\r\n\tfieldname: \"company\",\r\n\tlabel: __(\"Company\"),\r\n\tfieldtype: \"Link\",\r\n\toptions: \"Company\",\r\n\tdefault: frappe.defaults.get_user_default(\"Company\")\r\n},\r\n{\r\n\tfieldname: \"customer\",\r\n\tlabel: __(\"Customer\"),\r\n\tfieldtype: \"Link\",\r\n\toptions: \"Customer\"\r\n}]",
+ "filters_json": "{\"company\":\"INFINITY\",\"customer\":\"CREATIVE\"}",
+ "function": "Count",
+ "idx": 0,
+ "is_public": 1,
+ "is_standard": 1,
+ "label": "Overdue Outstanding",
+ "method": "freeline.freeline.globalapi.get_overdue_outstanding",
+ "modified": "2022-09-26 14:17:46.140689",
+ "modified_by": "Administrator",
+ "module": "Freeline",
+ "name": "Overdue Outstanding",
+ "owner": "Administrator",
+ "report_function": "Sum",
+ "show_percentage_stats": 1,
+ "stats_time_interval": "Daily",
+ "type": "Custom"
+}
