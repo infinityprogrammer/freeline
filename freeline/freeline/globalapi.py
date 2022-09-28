@@ -106,3 +106,26 @@ def get_item_barcode(item_code):
     
     barcode_val = barcode[0].barcode_str
     return barcode_val
+
+
+@frappe.whitelist()
+def get_invoice_items_by_url(driver=None):
+    print("-----driver-----")
+    print(driver)
+    
+    sale_invoice_name = frappe.db.sql(""" SELECT name,posting_date FROM `tabSales Invoice`
+                                where docstatus = 1""", as_dict=True)
+    sales_invoice_items = []
+    for d in sale_invoice_name:
+        item_details = frappe._dict()
+        item_details['name'] = d.name
+        item_details['posting_date'] = d.posting_date
+        items = frappe.db.sql(""" SELECT item_code,qty,uom,delivered_qty FROM `tabSales Invoice Item` b
+                                    where b.parent =  %(parent)s
+                                    and b.docstatus = 1""",{'parent': d.name}, as_dict=True)
+        items_dict = []
+        for i in items:
+            items_dict.append(i)
+        item_details.update({"items": items_dict})
+        sales_invoice_items.append(item_details)
+    return sales_invoice_items
