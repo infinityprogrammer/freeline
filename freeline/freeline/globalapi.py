@@ -109,20 +109,23 @@ def get_item_barcode(item_code):
 
 
 @frappe.whitelist()
-def get_invoice_items_by_url(driver=None):
-    print("-----driver-----")
-    print(driver)
+def get_invoice_items_by_driver(driver=None):
     
-    sale_invoice_name = frappe.db.sql(""" SELECT name,posting_date FROM `tabSales Invoice`
-                                where docstatus = 1""", as_dict=True)
+    condition =""
+    if driver:
+        condition += " and driver = %(driver)s"
+    
+    sale_invoice_name = frappe.db.sql(""" SELECT name,posting_date,customer FROM `tabSales Invoice`
+                                where docstatus = 1 {condition}""".format(condition=condition),{'driver':driver}, as_dict=True)
     sales_invoice_items = []
     for d in sale_invoice_name:
         item_details = frappe._dict()
         item_details['name'] = d.name
+        item_details['customer'] = d.customer
         item_details['posting_date'] = d.posting_date
         items = frappe.db.sql(""" SELECT item_code,qty,uom,delivered_qty FROM `tabSales Invoice Item` b
                                     where b.parent =  %(parent)s
-                                    and b.docstatus = 1""",{'parent': d.name}, as_dict=True)
+                                    and b.docstatus = 1 """,{'parent': d.name}, as_dict=True)
         items_dict = []
         for i in items:
             items_dict.append(i)
