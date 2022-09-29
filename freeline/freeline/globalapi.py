@@ -115,7 +115,7 @@ def get_invoice_items_by_driver(driver=None):
     if driver:
         condition += " and driver = %(driver)s"
     
-    sale_invoice_name = frappe.db.sql(""" SELECT name,posting_date,customer FROM `tabSales Invoice`
+    sale_invoice_name = frappe.db.sql(""" SELECT name,posting_date,customer,driver FROM `tabSales Invoice`
                                 where docstatus = 1 {condition}""".format(condition=condition),{'driver':driver}, as_dict=True)
     sales_invoice_items = []
     for d in sale_invoice_name:
@@ -123,6 +123,7 @@ def get_invoice_items_by_driver(driver=None):
         item_details['name'] = d.name
         item_details['customer'] = d.customer
         item_details['posting_date'] = d.posting_date
+        item_details['driver'] = d.driver
         items = frappe.db.sql(""" SELECT item_code,qty,uom,delivered_qty FROM `tabSales Invoice Item` b
                                     where b.parent =  %(parent)s
                                     and b.docstatus = 1 """,{'parent': d.name}, as_dict=True)
