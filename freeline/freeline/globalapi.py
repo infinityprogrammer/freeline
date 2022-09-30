@@ -113,29 +113,29 @@ def get_invoice_items_by_driver(driver=None):
     
     log_user = frappe.session.user
     condition = ""
-    sales_person_head = frappe.db.get_value('User Permission', {'user': log_user,'allow':'Sales Person'}, ['for_value'],as_dict=1)
-    if sales_person_head:
-        sales_p = []
-        sales_p.append("A")
+    # sales_person_head = frappe.db.get_value('User Permission', {'user': log_user,'allow':'Sales Person'}, ['for_value'],as_dict=1)
+    # if sales_person_head:
+    #     sales_p = []
+    #     sales_p.append("A")
         
-        lft, rgt = frappe.db.get_value("Sales Person", sales_person_head.for_value, ["lft", "rgt"])
-        sales_pers = frappe.db.sql(
-            """
-            select employee from `tabSales Person` where lft >= %s and rgt <= %s and is_group = 0
-            """,
-            (lft, rgt),
-            as_dict=1,
-        )
-        for s in sales_pers:
-            sales_p.append(s.employee)
+    #     lft, rgt = frappe.db.get_value("Sales Person", sales_person_head.for_value, ["lft", "rgt"])
+    #     sales_pers = frappe.db.sql(
+    #         """
+    #         select employee from `tabSales Person` where lft >= %s and rgt <= %s and is_group = 0
+    #         """,
+    #         (lft, rgt),
+    #         as_dict=1,
+    #     )
+    #     for s in sales_pers:
+    #         sales_p.append(s.employee)
             
-        condition += " and employee in %(employee_id)s"
+    #     condition += " and employee in %(employee_id)s"
         
     if driver:
         condition += " and driver = %(driver)s"
     
     sale_invoice_name = frappe.db.sql(""" SELECT name,posting_date,customer,driver FROM `tabSales Invoice`
-                                where docstatus = 1 {condition}""".format(condition=condition),{'driver':driver,'employee_id':sales_p}, as_dict=True)
+                                where docstatus = 1 {condition}""".format(condition=condition),{'driver':driver}, as_dict=True)
     sales_invoice_items = []
     for d in sale_invoice_name:
         item_details = frappe._dict()
