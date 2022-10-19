@@ -111,6 +111,10 @@ def _execute(filters=None, additional_table_columns=None, additional_query_colum
 				"supplier_no": d.supplier_no,
 			}
 		)
+		if d.sales_order:
+			dn_num = get_dn_num(d.sales_order)
+			if dn_num:
+				row.update({"dn_number": dn_num[0].parent})
 
 		if d.stock_uom != d.uom and d.stock_qty:
 			row.update({"rate": (d.base_net_rate * d.qty) / d.stock_qty, "amount": d.base_net_amount})
@@ -317,6 +321,13 @@ def get_columns(additional_table_columns, filters):
 		{
 			"label": _("Delivery Note"),
 			"fieldname": "delivery_note",
+			"fieldtype": "Link",
+			"options": "Delivery Note",
+			"width": 100,
+		},
+		{
+			"label": _("DN Number"),
+			"fieldname": "dn_number",
 			"fieldtype": "Link",
 			"options": "Delivery Note",
 			"width": 100,
@@ -538,6 +549,12 @@ def get_delivery_notes_against_sales_order(item_list):
 
 	return so_dn_map
 
+def get_dn_num(order_no):
+    
+    condition = ""
+    dn_num = frappe.db.sql(""" SELECT GROUP_CONCAT(parent)parent FROM `tabDelivery Note Item`
+                                where against_sales_order = %(order_no)s""",{'order_no':order_no}, as_dict=True)
+    return dn_num
 
 def get_grand_total(filters, doctype):
 
