@@ -107,6 +107,14 @@ def get_item_barcode(item_code):
     barcode_val = barcode[0].barcode_str
     return barcode_val
 
+@frappe.whitelist()
+def get_cogs_amount():
+    cogs = frappe.db.sql(""" SELECT ifnull(sum(debit_in_account_currency - credit_in_account_currency),0) as cogs_amt FROM `tabGL Entry` 
+                                where is_cancelled = 0 and company = 'Tiejan'
+                                and account like '5%' """, as_dict=True)
+    
+    cogs_val = cogs[0].cogs_amt
+    return cogs_val
 
 @frappe.whitelist()
 def get_invoice_items_by_driver(driver=None):
