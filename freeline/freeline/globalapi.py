@@ -116,6 +116,56 @@ def get_cogs_amount():
     cogs_val = cogs[0].cogs_amt
     return cogs_val
 
+
+@frappe.whitelist()
+def get_gp_ratio():
+    gp_ratio = frappe.db.sql(""" SELECT ((
+                                        (SELECT sum(grand_total) FROM `tabSales Invoice` where docstatus = 1)-(SELECT ifnull(sum(debit_in_account_currency - credit_in_account_currency),0) FROM `tabGL Entry` 
+                                        where is_cancelled = 0 and company = 'Tiejan'
+                                        and account like '5%'))/
+                                        (SELECT sum(grand_total) FROM `tabSales Invoice` where docstatus = 1))*100 as gp""", as_dict=True)
+    
+    gp_ratio_val = gp_ratio[0].gp
+    return gp_ratio_val
+
+@frappe.whitelist()
+def get_profit_amount():
+    profit = frappe.db.sql(""" SELECT (
+                                (SELECT sum(grand_total) FROM `tabSales Invoice` where docstatus = 1) - (SELECT ifnull(sum(debit_in_account_currency - credit_in_account_currency),0) FROM `tabGL Entry` 
+                                where is_cancelled = 0 and company = 'Tiejan'
+                                and account like '5%')) AS profit """, as_dict=True)
+    
+    profit_val = profit[0].profit
+    return profit_val
+
+@frappe.whitelist()
+def get_current_ratio():
+    c_ratio = frappe.db.sql(""" SELECT (asset_val/liab_val)curernt_ratio FROM (
+                                (SELECT sum(debit_in_account_currency - credit_in_account_currency) asset_val
+                                FROM `tabGL Entry` where account in 
+                                (SELECT name FROM `tabAccount` where root_type = 'Asset' and is_group = 0 and company = 'Tiejan'))a1,
+                                (SELECT sum(credit_in_account_currency - debit_in_account_currency)liab_val
+                                FROM `tabGL Entry` where account in 
+                                (SELECT name FROM `tabAccount` where root_type = 'Liability' and is_group = 0 and company = 'Tiejan'))a2) """, as_dict=True)
+    
+    c_ratio_val = c_ratio[0].curernt_ratio
+    return c_ratio_val
+
+@frappe.whitelist()
+def get_working_capital():
+    working_cap = frappe.db.sql(""" SELECT ifnull((asset_val-liab_val),0)working_capital FROM (
+                                    (SELECT sum(debit_in_account_currency - credit_in_account_currency) asset_val
+                                    FROM `tabGL Entry` where account in 
+                                    (SELECT name FROM `tabAccount` where root_type = 'Asset' and is_group = 0 and company = 'Tiejan'))a1,
+                                    (SELECT sum(credit_in_account_currency - debit_in_account_currency)liab_val
+                                    FROM `tabGL Entry` where account in 
+                                    (SELECT name FROM `tabAccount` where root_type = 'Liability' and is_group = 0 and company = 'Tiejan'))a2) """, as_dict=True)
+    
+    working_capital_val = working_cap[0].working_capital
+    return working_capital_val
+
+
+
 @frappe.whitelist()
 def get_invoice_items_by_driver(driver=None):
     
