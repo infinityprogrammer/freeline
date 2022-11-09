@@ -212,5 +212,7 @@ jenv = {
         "emp_null_statement_details:freeline.freeline.doctype.party_statement.party_statement.emp_null_statement_details",
         "get_emp_null_opening:freeline.freeline.doctype.party_statement.party_statement.get_emp_null_opening",
         "get_item_barcode:freeline.freeline.globalapi.get_item_barcode",
+        "get_line_total_disc:freeline.freeline.globalapi.get_line_total_disc",
+        "get_gross_total_amt:freeline.freeline.globalapi.get_gross_total_amt",
     ]
 }
