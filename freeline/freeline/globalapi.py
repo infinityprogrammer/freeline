@@ -152,6 +152,19 @@ def get_gross_total_amt(inv):
     gross_total_val = gross_total[0].gross_total
     return gross_total_val
 
+@frappe.whitelist()
+def get_line_total_disc_order(inv):
+    disc_amt = frappe.db.sql(""" SELECT round(ifnull(sum(qty*discount_amount),0),2)disc FROM `tabSales Order Item` where parent = %(inv)s  """,{'inv':inv}, as_dict=True)
+    
+    disc_amt_val = disc_amt[0].disc
+    return disc_amt_val
+
+@frappe.whitelist()
+def get_gross_total_amt_order(inv):
+    gross_total = frappe.db.sql(""" SELECT round(ifnull(sum(qty*price_list_rate),0),2)gross_total FROM `tabSales Order Item` where parent = %(inv)s  """,{'inv':inv}, as_dict=True)
+    
+    gross_total_val = gross_total[0].gross_total
+    return gross_total_val
 
 
 @frappe.whitelist()

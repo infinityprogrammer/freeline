@@ -214,5 +214,7 @@ jenv = {
         "get_item_barcode:freeline.freeline.globalapi.get_item_barcode",
         "get_line_total_disc:freeline.freeline.globalapi.get_line_total_disc",
         "get_gross_total_amt:freeline.freeline.globalapi.get_gross_total_amt",
+        "get_line_total_disc_order:freeline.freeline.globalapi.get_line_total_disc_order",
+        "get_gross_total_amt_order:freeline.freeline.globalapi.get_gross_total_amt_order",
     ]
 }
