@@ -253,3 +253,82 @@ def get_invoice_items_by_driver(driver=None):
         item_details.update({"items": items_dict})
         sales_invoice_items.append(item_details)
     return sales_invoice_items
+
+
+
+@frappe.whitelist()
+def get_batch_qty_api(
+	batch_no=None, warehouse=None, item_code=None, posting_date=None, posting_time=None
+):
+	"""Returns batch actual qty if warehouse is passed,
+	        or returns dict of qty by warehouse if warehouse is None
+
+	The user must pass either batch_no or batch_no + warehouse or item_code + warehouse
+
+	:param batch_no: Optional - give qty for this batch no
+	:param warehouse: Optional - give qty for this warehouse
+	:param item_code: Optional - give qty for this item"""
+
+	out = 0
+	if batch_no and warehouse:
+		cond = ""
+		if posting_date and posting_time:
+			cond = " and timestamp(posting_date, posting_time) <= timestamp('{0}', '{1}')".format(
+				posting_date, posting_time
+			)
+
+		out = float(
+			frappe.db.sql(
+				"""select sum(actual_qty)
+			from `tabStock Ledger Entry`
+			where is_cancelled = 0 and warehouse=%s and batch_no=%s {0}""".format(
+					cond
+				),
+				(warehouse, batch_no),
+			)[0][0]
+			or 0
+		)
+
+	if batch_no and not warehouse:
+		out = frappe.db.sql(
+			"""select warehouse, sum(actual_qty) as qty
+			from `tabStock Ledger Entry`
+			where is_cancelled = 0 and batch_no=%s
+			group by warehouse""",
+			batch_no,
+			as_dict=1,
+		)
+
+	if not batch_no and item_code and warehouse:
+		out = frappe.db.sql(
+			"""select batch_no, sum(actual_qty) as qty
+			from `tabStock Ledger Entry`
+			where is_cancelled = 0 and item_code = %s and warehouse=%s
+			group by batch_no""",
+			(item_code, warehouse),
+			as_dict=1,
+		)
+
+	return out
+
+@frappe.whitelist()
+def get_batch_warehouse_qty(item_code):
+    
+    batch_item = []
+    
+    batch_qty = frappe.db.sql(""" select batch_no,warehouse,sum(actual_qty) as qty
+                    from `tabStock Ledger Entry`
+                    where is_cancelled = 0 and item_code = %(item_code)s
+                    group by batch_no,warehouse
+                    having sum(actual_qty) > 0 """,{'item_code':item_code}, as_dict=True)
+    
+    batch_details = frappe._dict()
+    batch_details['item_code'] = item_code
+    
+    batch_items_dict = []
+    for i in batch_qty:
+        batch_items_dict.append(i)
+    batch_details.update({"stock": batch_items_dict})
+    batch_item.append(batch_details)
+    
+    return batch_details
