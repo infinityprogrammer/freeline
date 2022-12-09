@@ -23,7 +23,7 @@ frappe.ui.form.on("Payment Reconciliation", {
 	    {
             if (payments.reference_type == "Payment Entry"){
                 frappe.db.get_value("Payment Entry", {"name": payments.reference_name}, "employee_name", (r) => {
-                    frappe.model.set_value(payments.doctype,payments.name,"employee_name",r.employee);
+                    frappe.model.set_value(payments.doctype,payments.name,"employee_name",r.employee_name);
                 });
             }
 	    });
