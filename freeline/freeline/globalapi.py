@@ -316,7 +316,9 @@ def get_batch_warehouse_qty(item_code):
     
     batch_item = []
     
-    batch_qty = frappe.db.sql(""" select batch_no,warehouse,sum(actual_qty) as qty
+    batch_qty = frappe.db.sql(""" select batch_no,warehouse,
+                    (select stock_uom from `tabBatch` b where b.batch_id = batch_no)stock_uom,
+                    sum(actual_qty) as qty
                     from `tabStock Ledger Entry`
                     where is_cancelled = 0 and item_code = %(item_code)s
                     group by batch_no,warehouse
