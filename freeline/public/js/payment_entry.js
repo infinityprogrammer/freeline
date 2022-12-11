@@ -13,7 +13,7 @@ frappe.ui.form.on("Payment Entry", {
 
     before_save:function(frm){
         if(frm.doc.payment_type == "Receive"){
-            frm.set_value("employee_id","");
+            // frm.set_value("employee_id","");
             $.each(frm.doc["references"],function(i, references)
             {
                 if(references.employee_name != ""){
