@@ -334,3 +334,16 @@ def get_batch_warehouse_qty(item_code):
     batch_item.append(batch_details)
     
     return batch_details
+
+def get_picklist_in_dn(self, arg):
+    
+    for data in self.items:
+        if data.warehouse in ['Stores - INF']:
+            if data.pick_list_item:
+                p_qty = frappe.db.sql(""" SELECT picked_qty FROM `tabPick List Item` where name =  %(item)s""",
+                                {'item': data.pick_list_item}, as_dict=True)
+                                
+                if p_qty[0].picked_qty != data.qty:
+                    frappe.throw("Qty mistamch in DN and Picklist, Picklist have {0} qty.".format(p_qty[0].picked_qty))
+            else:
+                frappe.throw("Must create Pick List for this warehouse {0}.".format(data.warehouse))
