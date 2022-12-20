@@ -336,9 +336,20 @@ def get_batch_warehouse_qty(item_code):
     return batch_details
 
 def get_picklist_in_dn(self, arg):
+    dn_wh = []
+    lft, rgt = frappe.db.get_value("Warehouse", 'Erbil warehouse - TA', ["lft", "rgt"])
+    res_wh = frappe.db.sql(
+				"""
+				SELECT name FROM `tabWarehouse` where lft >= %s and rgt <= %s and is_group = 0
+				""",
+				(lft, rgt),
+				as_dict=1,
+			)
+    for s in res_wh:
+        dn_wh.append(s.name)
     
     for data in self.items:
-        if data.warehouse in ['Stores - INF']:
+        if data.warehouse in dn_wh:
             if data.pick_list_item:
                 p_qty = frappe.db.sql(""" SELECT picked_qty FROM `tabPick List Item` where name =  %(item)s""",
                                 {'item': data.pick_list_item}, as_dict=True)
