@@ -27,38 +27,43 @@ def get_data(filters):
 	data = frappe.db.sql(
 		"""
 		SELECT name as item_code,item_name,description,item_group, 'No' seasonal,
-		(SELECT actual_qty FROM `tabBin` bin where bin.item_code = item.name)current_stock,
-		(SELECT stock_value FROM `tabStock Ledger Entry` sle where is_cancelled = 0 and sle.item_code = item.name order by posting_date desc limit 1)cost, 
-		(select datediff(curdate(),sle.posting_date)age_day from `tabStock Ledger Entry` sle where sle.voucher_type in ('Purchase Receipt','Purchase Invoice')
-		and is_cancelled = 0 and sle.item_code = item.name order by posting_date desc limit 1)average_ageing,
+		(SELECT sum(actual_qty) FROM `tabBin` bin where bin.item_code = item.name and 
+		warehouse in (SELECT name FROM `tabWarehouse` where company = %(company)s))current_stock,
+		(SELECT stock_value FROM `tabStock Ledger Entry` sle where is_cancelled = 0 and sle.item_code = item.name 
+		and company = %(company)s
+		order by posting_date desc limit 1)cost, 
+		(select datediff(curdate(),sle.posting_date)age_day from `tabStock Ledger Entry` sle where 
+		sle.voucher_type in ('Purchase Receipt','Purchase Invoice')
+		and is_cancelled = 0 and sle.item_code = item.name and company = %(company)s order by posting_date desc limit 1)average_ageing,
 		(SELECT abs(sum(actual_qty)) FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
-		and is_cancelled = 0 and sle.item_code = item.name
+		and is_cancelled = 0 and sle.item_code = item.name and company = %(company)s
 		and datediff(curdate(),sle.posting_date) <= 30)sold_m1,
 		(SELECT abs(sum(actual_qty)) FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
-		and is_cancelled = 0 and sle.item_code = item.name
+		and is_cancelled = 0 and sle.item_code = item.name and company = %(company)s
 		and datediff(curdate(),sle.posting_date) <= 60)sold_m2,
 		(SELECT abs(sum(actual_qty)) FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
-		and is_cancelled = 0 and sle.item_code = item.name
+		and is_cancelled = 0 and sle.item_code = item.name and company = %(company)s
 		and datediff(curdate(),sle.posting_date) <= 90)sold_m3,
 		(SELECT abs(sum(actual_qty)) FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
-		and is_cancelled = 0 and sle.item_code = item.name
+		and is_cancelled = 0 and sle.item_code = item.name and company = %(company)s
 		and datediff(curdate(),sle.posting_date) <= 120)sold_m4,
 		(SELECT abs(sum(actual_qty)) FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
-		and is_cancelled = 0 and sle.item_code = item.name
+		and is_cancelled = 0 and sle.item_code = item.name and company = %(company)s
 		and datediff(curdate(),sle.posting_date) <= 150)sold_m5,
 		(SELECT abs(sum(actual_qty)) FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
-		and is_cancelled = 0 and sle.item_code = item.name
+		and is_cancelled = 0 and sle.item_code = item.name and company = %(company)s
 		and datediff(curdate(),sle.posting_date) <= 180)sold_m6, 
 		(SELECT abs(sum(actual_qty))/6 FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
-		and is_cancelled = 0 and sle.item_code = item.name
+		and is_cancelled = 0 and sle.item_code = item.name and company = %(company)s
 		and datediff(curdate(),sle.posting_date) <= 180)avg_qty_m6, 
-		round(((SELECT actual_qty FROM `tabBin` bin where bin.item_code = item.name)/
+		round(((SELECT actual_qty FROM `tabBin` bin where bin.item_code = item.name and 
+		warehouse in (SELECT name FROM `tabWarehouse` where company = %(company)s))/
 		(SELECT abs(sum(actual_qty))/6 FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
-		and is_cancelled = 0 and sle.item_code = item.name
+		and is_cancelled = 0 and sle.item_code = item.name and company = %(company)s
 		and datediff(curdate(),sle.posting_date) <= 180)),2)stock_cover,
 		(SELECT sum(amount) FROM `tabSales Invoice` sl, `tabSales Invoice Item` it
-		where sl.name = it.parent and sl.docstatus = 1 and it.item_code = item.name)turnover
-		FROM tabItem item where 1=1 {0}""".format(conditions),filters,as_dict=1) 
+		where sl.name = it.parent and sl.docstatus = 1 and it.item_code = item.name and company=  %(company)s)turnover
+		FROM tabItem item where 1=1 {0}""".format(conditions),filters,as_dict=1)
 
 	return data
 
