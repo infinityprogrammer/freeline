@@ -75,6 +75,7 @@ def _execute(filters=None, additional_table_columns=None, additional_query_colum
 			"carton_factor": d.carton_factor,
 			"qty_in_carton": d.qty_in_carton,
 			"sales_person": d.sales_person,
+			"sales_team": d.sales_team,
 			"employee_name": d.employee_name,
 			"employee": d.employee,
 			"discount_amount": d.discount_amount,
@@ -162,7 +163,8 @@ def _execute(filters=None, additional_table_columns=None, additional_query_colum
 		add_sub_total_row(total_row, total_row_map, "total_row", tax_columns)
 		data.append(total_row_map.get("total_row"))
 		skip_total_row = 1
-
+	print("****data****")
+	print(data)
 	return columns, data, None, None, None, skip_total_row
 
 
@@ -287,6 +289,13 @@ def get_columns(additional_table_columns, filters):
 		{
 			"label": _("Sales Person"),
 			"fieldname": "sales_person",
+			"fieldtype": "Link",
+			"options": "Sales Team",
+			"width": 120,
+		},
+		{
+			"label": _("Sales Team"),
+			"fieldname": "sales_team",
 			"fieldtype": "Link",
 			"options": "Sales Team",
 			"width": 120,
@@ -505,6 +514,8 @@ def get_items(filters, additional_query_columns):
    			(SELECT brand FROM `tabItem` where `tabItem`.name = `tabSales Invoice Item`.item_code) as brand,
 			(SELECT ((`tabSales Invoice Item`.`amount`/ `tabSales Invoice`.`total`))* `tabSales Invoice`.discount_amount ) as invoice_discount_amount,
 			(select GROUP_CONCAT(sales_person) from `tabSales Team` where `tabSales Team`.parent = `tabSales Invoice`.name) as sales_person,
+			(SELECT parent FROM `tabSales Person` sp where 
+			sp.sales_person_name = (select GROUP_CONCAT(sales_person) from `tabSales Team` where `tabSales Team`.parent = `tabSales Invoice`.name)) as sales_team,
 			(SELECT GROUP_CONCAT(barcode) FROM `tabItem Barcode` where `tabItem Barcode`.parent = `tabSales Invoice Item`.item_code) as barcode,
 			(SELECT conversion_factor FROM `tabUOM Conversion Detail` uf where uf.parent = `tabSales Invoice Item`.item_code and uf.uom = 'Carton') as carton_factor,
 			(select GROUP_CONCAT(supplier_part_no) from `tabItem Supplier` where `tabItem Supplier`.parent = `tabSales Invoice Item`.item_code) as supplier_no,
