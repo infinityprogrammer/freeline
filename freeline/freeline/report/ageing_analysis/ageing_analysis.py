@@ -56,7 +56,7 @@ def get_data(filters):
 		(SELECT abs(sum(actual_qty))/6 FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
 		and is_cancelled = 0 and sle.item_code = item.name and company = %(company)s
 		and datediff(curdate(),sle.posting_date) <= 180)avg_qty_m6, 
-		round(((SELECT actual_qty FROM `tabBin` bin where bin.item_code = item.name and 
+		round(((SELECT sum(actual_qty) FROM `tabBin` bin where bin.item_code = item.name and 
 		warehouse in (SELECT name FROM `tabWarehouse` where company = %(company)s))/
 		(SELECT abs(sum(actual_qty))/6 FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
 		and is_cancelled = 0 and sle.item_code = item.name and company = %(company)s
