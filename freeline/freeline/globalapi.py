@@ -362,3 +362,35 @@ def get_picklist_in_dn(self, arg):
                     frappe.throw("Qty mistamch in DN and Picklist, Picklist have {0} qty.".format(p_qty[0].picked_qty))
             else:
                 frappe.throw("Must create Pick List for this warehouse {0}.".format(data.warehouse))
+
+def get_item_valuation_rate(item_code):
+    
+    item_val = frappe.db.sql(""" select round(valuation_rate, 2)valuation_rate from `tabStock Ledger Entry` force index (item_code) where
+                                item_code = %(item)s AND valuation_rate > 0 AND is_cancelled = 0
+                                order by posting_date desc, posting_time desc, name desc limit 1 """,{'item': item_code}, as_dict=True)
+    
+    item_val_rate = item_val[0].valuation_rate
+    return item_val_rate
+
+@frappe.whitelist()
+def get_trade_price_list():
+    changed_price = []
+    price_lists = frappe.db.get_list('Item Price',filters={'price_list': 'Trade Price List'},
+                    fields=['name','item_code', 'uom','price_list_rate'])
+    # print(price_lists)
+    for i in price_lists:
+        val_rate = get_item_valuation_rate(i.item_code)
+        if val_rate != i.price_list_rate:
+            frappe.db.set_value('Item Price', i.name, 'price_list_rate', val_rate)
+            i['val_rate'] = val_rate
+            changed_price.append(i)
+            doc = frappe.get_doc('Item Price', i.name)
+            doc.add_comment('Comment', text='Price changed from {0} to {1}'.format(i.price_list_rate, val_rate))
+
+    return changed_price;
+
+def hello_world():
+    text = "Results of the hello_world in hello.py module"
+    return text
+    
+# bench execute freeline.freeline.globalapi.get_trade_price_list
