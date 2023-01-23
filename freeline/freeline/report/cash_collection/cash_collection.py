@@ -29,7 +29,7 @@ def get_data(filters):
 	if filters.get("warehouse"):
 		conditions += " and si.set_warehouse = %(warehouse)s"
 
-	conditions += " and gl.account IN %(account)s"
+	conditions += " and gl.account IN %(account)s and si.customer_branch = %(customer_branch)s"
 
 	data = frappe.db.sql(
 		"""
