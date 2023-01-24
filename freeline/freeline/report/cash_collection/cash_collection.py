@@ -35,7 +35,7 @@ def get_data(filters):
 		"""
 		SELECT si.company,si.posting_date,si.set_warehouse,si.name,customer,customer_name,gl.account,
 		grand_total,outstanding_amount,si.currency,(gl.debit_in_account_currency - gl.credit_in_account_currency)recieved_amount
-		FROM `tabSales Invoice` si ,`tabGL Entry` gl where si.name = gl.voucher_no
+		FROM `tabSales Invoice` si ,`tabGL Entry` gl where si.name = gl.voucher_no and gl.is_cancelled = 0
 		and gl.voucher_type = 'Sales Invoice' and si.company = %(company)s and si.posting_date 
 		between %(from_date)s and %(to_date)s {0}""".format(conditions),filters,as_dict=1)
 
