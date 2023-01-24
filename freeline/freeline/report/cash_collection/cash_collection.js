@@ -37,10 +37,7 @@ frappe.query_reports["Cash Collection"] = {
 			get_data: function(txt) {
 				return frappe.db.get_link_options('Account', txt, {
 					company: frappe.query_report.get_filter_value("company"),
-					name : ["in", ["10121 - Cash In Hand  (Baghdad) -IQD - TA", "10122 - Cash In Hand (Baghdad) - USD - TA",
-									"10131 - Cash In Hand (Basrah) - USD - TA", "10132 - Cash In Hand (Basrah) - IQD - TA",
-									"10141 - Cash In Hand (Erbil) USD - TA","10152 - Cash In Hand (Erbil) IQD - TA"]
-							]
+					account_number : ["in", ["10121", "10122","10131", "10132","10141","10152"]]
 				});
 			}
 		},

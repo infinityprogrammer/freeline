@@ -8,6 +8,11 @@ frappe.ui.form.on('Sales Order', {
             }, "fa fa-money");
         }
     },
+    before_submit(frm) {
+        if(!frm.doc.picker_warehouse){
+            frappe.throw("Please select picker warehouse")
+        }
+    }
 });
 
 function create_pick_list(frm) {
