@@ -110,6 +110,7 @@ def _execute(filters=None, additional_table_columns=None, additional_query_colum
 				"stock_qty": d.stock_qty,
 				"stock_uom": d.stock_uom,
 				"supplier_no": d.supplier_no,
+				"batch_no": d.batch_no,
 			}
 		)
 		if d.sales_order:
@@ -415,6 +416,12 @@ def get_columns(additional_table_columns, filters):
 			"fieldtype": "Data",
 			"width": 100,
 		},
+		{
+			"label": _("Batch No"),
+			"fieldname": "batch_no",
+			"fieldtype": "Data",
+			"width": 100,
+		},
 	]
 
 	if filters.get("group_by"):
@@ -523,7 +530,7 @@ def get_items(filters, additional_query_columns):
 			`tabSales Invoice Item`.`item_name`, `tabSales Invoice Item`.`item_group`,
 			`tabSales Invoice Item`.sales_order, `tabSales Invoice Item`.delivery_note,
 			`tabSales Invoice Item`.income_account, `tabSales Invoice Item`.cost_center,
-			`tabSales Invoice Item`.stock_qty, `tabSales Invoice Item`.stock_uom,
+			`tabSales Invoice Item`.stock_qty, `tabSales Invoice Item`.stock_uom,`tabSales Invoice Item`.batch_no,
 			`tabSales Invoice Item`.base_net_rate, `tabSales Invoice Item`.base_net_amount,
 			`tabSales Invoice`.customer_name, `tabSales Invoice`.customer_group, `tabSales Invoice Item`.so_detail,
 			`tabSales Invoice`.update_stock, `tabSales Invoice Item`.uom, `tabSales Invoice Item`.qty {0}

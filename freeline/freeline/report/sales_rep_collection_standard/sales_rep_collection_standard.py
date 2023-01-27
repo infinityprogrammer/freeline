@@ -58,6 +58,9 @@ def get_data(filters):
 		round(a.total_amount,2)total_amount,round(a.allocated_amount,2)allocated_amount,
 		((round(a.allocated_amount,2)/round(a.total_amount,2))*100)rec_perce,
 		(select status from `tabSales Invoice` inv where inv.name = a.reference_name)status,
+		datediff(curdate(),(select inv.due_date from `tabSales Invoice` inv where inv.name = a.reference_name))due_age,
+		(SELECT payment_terms FROM `tabCustomer` c where c.name = (select customer from `tabSales Invoice` 
+		inv where inv.name = a.reference_name))payment_terms,
 		round((select outstanding_amount from `tabSales Invoice` inv where inv.name = a.reference_name),2)outstanding_amount,
 		(select employee_name from `tabSales Invoice` inv where inv.name = a.reference_name)employee_name
 		FROM `tabPayment Entry Reference` a, `tabPayment Entry` b
@@ -137,6 +140,18 @@ def get_columns(filters):
 			"label": _("Outstanding Amount"),
 			"fieldname": "outstanding_amount",
 			"fieldtype": "Float",
+			"width": 140,
+		},
+		{
+			"label": _("Due Age"),
+			"fieldname": "due_age",
+			"fieldtype": "Float",
+			"width": 140,
+		},
+		{
+			"label": _("Payment Terms"),
+			"fieldname": "payment_terms",
+			"fieldtype": "Data",
 			"width": 140,
 		},
 	]
