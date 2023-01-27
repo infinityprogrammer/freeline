@@ -14,19 +14,33 @@ def execute(filters=None):
 	if not filters.get("company"):
 		return
 
-	items_val = get_data(filters)
-
-	for item in items_val:
-		item.update(
-			{
-				"ttts":99
-			})
-
-	data = items_val
+	data = get_data(filters)
 	columns = get_columns()
-	for row in data:
 
-		get_item_batch_by_lead_days(row.item_code)
+	for row in data:
+		three_month_avg = (row.sold_m1 + row.sold_m2 + row.sold_m3)/3
+		batches = get_item_batch_by_lead_days(row.item_code)
+		row.update(
+				{
+					"three_month_avg":three_month_avg
+				})
+		i = 0;
+		batch_avg = 0;
+		for b in batches:
+			i +=1
+			batch_val = get_batch_val(row.item_code, b.batch_no)
+			batch_avg += batch_val
+		if i:
+			row_avg = (batch_avg/i)
+			row.update(
+				{
+					"ttts":row_avg
+				})
+		else:
+			row.update(
+				{
+					"ttts":0
+				})
 
 	return columns, data
 
@@ -38,15 +52,15 @@ def get_data(filters):
 							0 ttts,
 							(SELECT stock_value FROM `tabStock Ledger Entry` sle where is_cancelled = 0 and sle.item_code = item.name 
 							and company = %(company)s order by posting_date desc limit 1)cost,
-							(SELECT abs(sum(actual_qty)) FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
+							ifnull((SELECT abs(sum(actual_qty)) FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
 							and is_cancelled = 0 and sle.item_code = item.name and company = %(company)s
-							and datediff(curdate(),sle.posting_date) between 0 and 30)sold_m1,
-							(SELECT abs(sum(actual_qty)) FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
+							and datediff(curdate(),sle.posting_date) between 0 and 30), 0)sold_m1,
+							ifnull((SELECT abs(sum(actual_qty)) FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
 							and is_cancelled = 0 and sle.item_code = item.name and company = %(company)s
-							and datediff(curdate(),sle.posting_date) between 31 and 60)sold_m2,
-							(SELECT abs(sum(actual_qty)) FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
+							and datediff(curdate(),sle.posting_date) between 31 and 60), 0)sold_m2,
+							ifnull((SELECT abs(sum(actual_qty)) FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
 							and is_cancelled = 0 and sle.item_code = item.name and company = %(company)s
-							and datediff(curdate(),sle.posting_date) between 61 and 90)sold_m3,0 stock_cover,
+							and datediff(curdate(),sle.posting_date) between 61 and 90), 0)sold_m3,0 stock_cover,
 							(SELECT sum(amount) FROM `tabSales Invoice` sl, `tabSales Invoice Item` it
 							where sl.name = it.parent and sl.docstatus = 1 and it.item_code = item.name and company=  %(company)s)turnover
 							FROM `tabItem` item """,filters,as_dict=True)
@@ -54,8 +68,8 @@ def get_data(filters):
 
 def get_item_batch_by_lead_days(item_code):
 	item_batches = frappe.db.sql(""" SELECT distinct batch_no FROM `tabStock Ledger Entry` sle 
-									where item_code = %(item)s and sle.is_cancelled=0
-									AND sle.voucher_type in ('Sales Invoice','Delivery Note')""",{'item': item_code}, as_list=True)
+									where item_code = %(item)s and sle.is_cancelled=0 and batch_no != ''
+									AND sle.voucher_type in ('Sales Invoice','Delivery Note')""",{'item': item_code}, as_dict=True)
 
 	return item_batches
 
@@ -70,7 +84,21 @@ def get_batch_reception_date(batch, item):
 	else:
 		return
 
+def get_batch_val(item_code, batch):
 
+	batch_val = frappe.db.sql("""SELECT ifnull(round(sum(batch_val)/sum(actual_qty),2) , 0)batch_val FROM (
+								SELECT a1.*,(actual_qty * diff_days)batch_val FROM (
+								SELECT item_code,posting_date,batch_no,sum(actual_qty *-1)actual_qty,
+								datediff(sle.posting_date, 
+								(SELECT MIN(pr.posting_date)posting_date FROM `tabPurchase Receipt` pr, `tabPurchase Receipt Item` pt 
+								where pr.name = pt.parent
+								and pt.item_code = %(item)s and pr.docstatus=1
+								and pt.batch_no = %(batch)s))diff_days
+								FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Delivery Note', 'Sales Invoice')
+								and sle.item_code = %(item)s and sle.batch_no = %(batch)s
+								and sle.is_cancelled = 0
+								group by item_code,posting_date,batch_no)a1)a2 """,{'item': item_code,'batch':batch}, as_dict=True)
+	return batch_val[0].batch_val
 
 
 def get_columns():
@@ -100,7 +128,7 @@ def get_columns():
 			"width": 100
 		},
 		{
-			"label": _("TTTS"), 
+			"label": _("TTTS (Age)"), 
 			"fieldname": "ttts", 
 			"fieldtype": "Float",
 			"width": 130
@@ -120,6 +148,12 @@ def get_columns():
 		{
 			"label": _("Sold Qty (61 - 90)"), 
 			"fieldname": "sold_m3",
+			"fieldtype": "Float",
+			"width": 150
+		},
+		{
+			"label": _("Moving Average"), 
+			"fieldname": "three_month_avg",
 			"fieldtype": "Float",
 			"width": 150
 		},
