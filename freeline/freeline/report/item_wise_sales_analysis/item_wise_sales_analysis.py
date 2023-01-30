@@ -93,6 +93,13 @@ def _execute(filters=None, additional_table_columns=None, additional_query_colum
 		if additional_query_columns:
 			for col in additional_query_columns:
 				row.update({col: d.get(col)})
+		item_batch = None
+		if not d.batch_no:
+			dn_num_val = get_dn_num(d.sales_order)
+			if dn_num_val:
+				item_batch = get_batch_from_dn(dn_num_val[0].parent, d.dn_detail)
+		else:
+			item_batch = d.batch_no
 
 		row.update(
 			{
@@ -110,7 +117,7 @@ def _execute(filters=None, additional_table_columns=None, additional_query_colum
 				"stock_qty": d.stock_qty,
 				"stock_uom": d.stock_uom,
 				"supplier_no": d.supplier_no,
-				"batch_no": d.batch_no,
+				"batch_no": item_batch,
 			}
 		)
 		if d.sales_order:
@@ -164,10 +171,16 @@ def _execute(filters=None, additional_table_columns=None, additional_query_colum
 		add_sub_total_row(total_row, total_row_map, "total_row", tax_columns)
 		data.append(total_row_map.get("total_row"))
 		skip_total_row = 1
-	print("****data****")
-	print(data)
+	
 	return columns, data, None, None, None, skip_total_row
 
+def get_batch_from_dn(dn_no, dn_det):
+	item_batch = frappe.db.sql(""" SELECT batch_no FROM `tabDelivery Note Item` where parent = %(dn_no)s 
+									and name = %(dn_det)s """,{'dn_no':dn_no,'dn_det':dn_det}, as_dict=True)
+	if item_batch:
+		return item_batch[0].batch_no
+	else:
+		return 0
 
 def get_columns(additional_table_columns, filters):
 	columns = []
@@ -532,7 +545,7 @@ def get_items(filters, additional_query_columns):
 			`tabSales Invoice Item`.income_account, `tabSales Invoice Item`.cost_center,
 			`tabSales Invoice Item`.stock_qty, `tabSales Invoice Item`.stock_uom,`tabSales Invoice Item`.batch_no,
 			`tabSales Invoice Item`.base_net_rate, `tabSales Invoice Item`.base_net_amount,
-			`tabSales Invoice`.customer_name, `tabSales Invoice`.customer_group, `tabSales Invoice Item`.so_detail,
+			`tabSales Invoice`.customer_name, `tabSales Invoice`.customer_group, `tabSales Invoice Item`.so_detail,`tabSales Invoice Item`.dn_detail,
 			`tabSales Invoice`.update_stock, `tabSales Invoice Item`.uom, `tabSales Invoice Item`.qty {0}
 		from `tabSales Invoice`, `tabSales Invoice Item`
 		where `tabSales Invoice`.name = `tabSales Invoice Item`.parent

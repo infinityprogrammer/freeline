@@ -32,9 +32,11 @@ def execute(filters=None):
 			batch_avg += batch_val
 		if i:
 			row_avg = (batch_avg/i)
+			stock_cover_vr = row.current_stock/row_avg
 			row.update(
 				{
-					"ttts":row_avg
+					"ttts":row_avg,
+					"stock_cover":stock_cover_vr,
 				})
 		else:
 			row.update(
@@ -52,18 +54,18 @@ def get_data(filters):
 							0 ttts,
 							(SELECT stock_value FROM `tabStock Ledger Entry` sle where is_cancelled = 0 and sle.item_code = item.name 
 							and company = %(company)s order by posting_date desc limit 1)cost,
-							ifnull((SELECT abs(sum(actual_qty)) FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
+							ifnull((SELECT sum(actual_qty *-1) FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
 							and is_cancelled = 0 and sle.item_code = item.name and company = %(company)s
 							and datediff(curdate(),sle.posting_date) between 0 and 30), 0)sold_m1,
-							ifnull((SELECT abs(sum(actual_qty)) FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
+							ifnull((SELECT sum(actual_qty *-1) FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
 							and is_cancelled = 0 and sle.item_code = item.name and company = %(company)s
 							and datediff(curdate(),sle.posting_date) between 31 and 60), 0)sold_m2,
-							ifnull((SELECT abs(sum(actual_qty)) FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
+							ifnull((SELECT sum(actual_qty *-1) FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
 							and is_cancelled = 0 and sle.item_code = item.name and company = %(company)s
 							and datediff(curdate(),sle.posting_date) between 61 and 90), 0)sold_m3,0 stock_cover,
 							(SELECT sum(amount) FROM `tabSales Invoice` sl, `tabSales Invoice Item` it
 							where sl.name = it.parent and sl.docstatus = 1 and it.item_code = item.name and company=  %(company)s)turnover
-							FROM `tabItem` item """,filters,as_dict=True)
+							FROM `tabItem` item where item.is_stock_item =1 """,filters,as_dict=True)
 	return data
 
 def get_item_batch_by_lead_days(item_code):
@@ -152,7 +154,7 @@ def get_columns():
 			"width": 150
 		},
 		{
-			"label": _("Moving Average"), 
+			"label": _("Moving Average (3 Month)"), 
 			"fieldname": "three_month_avg",
 			"fieldtype": "Float",
 			"width": 150
