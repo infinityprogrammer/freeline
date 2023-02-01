@@ -119,23 +119,28 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"freeline.tasks.all"
-# 	],
-# 	"daily": [
-# 		"freeline.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"freeline.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"freeline.tasks.weekly"
-# 	]
-# 	"monthly": [
-# 		"freeline.tasks.monthly"
-# 	]
-# }
+scheduler_events = {
+	# "all": [
+	# 	"freeline.tasks.all"
+	# ],
+	# "daily": [
+	# 	"freeline.tasks.daily"
+	# ],
+	# "hourly": [
+	# 	"freeline.tasks.hourly"
+	# ],
+	# "weekly": [
+	# 	"freeline.tasks.weekly"
+	# ]
+	# "monthly": [
+	# 	"freeline.tasks.monthly"
+	# ],
+    "cron": {
+		"10 0 1 * *": [
+			"freeline.freeline.globalapi.generate_rebate_process",
+		],
+	},
+}
 
 # Testing
 # -------

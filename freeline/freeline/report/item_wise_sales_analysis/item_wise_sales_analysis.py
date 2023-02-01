@@ -93,13 +93,6 @@ def _execute(filters=None, additional_table_columns=None, additional_query_colum
 		if additional_query_columns:
 			for col in additional_query_columns:
 				row.update({col: d.get(col)})
-		item_batch = None
-		if not d.batch_no:
-			dn_num_val = get_dn_num(d.sales_order)
-			if dn_num_val:
-				item_batch = get_batch_from_dn(dn_num_val[0].parent, d.dn_detail)
-		else:
-			item_batch = d.batch_no
 
 		row.update(
 			{
@@ -117,8 +110,7 @@ def _execute(filters=None, additional_table_columns=None, additional_query_colum
 				"stock_qty": d.stock_qty,
 				"stock_uom": d.stock_uom,
 				"supplier_no": d.supplier_no,
-				"batch_no": item_batch,
-				"dn_batch": d.dn_batch,
+				"batch_no": d.batch_no,
 			}
 		)
 		if d.sales_order:
@@ -436,12 +428,6 @@ def get_columns(additional_table_columns, filters):
 			"fieldtype": "Data",
 			"width": 100,
 		},
-		{
-			"label": _("DN Batch No"),
-			"fieldname": "dn_batch",
-			"fieldtype": "Data",
-			"width": 100,
-		},
 	]
 
 	if filters.get("group_by"):
@@ -550,8 +536,8 @@ def get_items(filters, additional_query_columns):
 			`tabSales Invoice Item`.`item_name`, `tabSales Invoice Item`.`item_group`,
 			`tabSales Invoice Item`.sales_order, `tabSales Invoice Item`.delivery_note,
 			`tabSales Invoice Item`.income_account, `tabSales Invoice Item`.cost_center,
-			`tabSales Invoice Item`.stock_qty, `tabSales Invoice Item`.stock_uom,`tabSales Invoice Item`.batch_no,
-			(SELECT dt.batch_no FROM `tabDelivery Note Item` dt where dt.against_sales_invoice = `tabSales Invoice`.name and dt.si_detail = `tabSales Invoice Item`.name)dn_batch,
+			`tabSales Invoice Item`.stock_qty, `tabSales Invoice Item`.stock_uom,
+			ifnull(`tabSales Invoice Item`.batch_no, (SELECT dt.batch_no FROM `tabDelivery Note Item` dt where dt.against_sales_invoice = `tabSales Invoice`.name and dt.si_detail = `tabSales Invoice Item`.name))batch_no,
 			`tabSales Invoice Item`.base_net_rate, `tabSales Invoice Item`.base_net_amount,
 			`tabSales Invoice`.customer_name, `tabSales Invoice`.customer_group, `tabSales Invoice Item`.so_detail,`tabSales Invoice Item`.dn_detail,
 			`tabSales Invoice`.update_stock, `tabSales Invoice Item`.uom, `tabSales Invoice Item`.qty {0}
