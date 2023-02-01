@@ -393,4 +393,101 @@ def hello_world():
     text = "Results of the hello_world in hello.py module"
     return text
     
-# bench execute freeline.freeline.globalapi.get_trade_price_list
+def generate_rebate_process():
+    
+    # month_last_day = '2023-01-31'
+    # month_first_day = '2023-01-01'
+    month_last_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
+    month_first_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=month_last_day.day)
+
+    rebate_customer = frappe.db.sql(""" SELECT * FROM `tabRebate Process` where rebate_start_from <= %(date)s and enabled = 1""",
+                            {'date': datetime.date.today()}, as_dict=True)
+    
+    for cust in rebate_customer:
+        # check rebate is already processed
+        
+        prev_rebate = already_process_rebate(cust.customer,month_last_day,cust.rebate_type,cust.company)
+
+        if not prev_rebate:
+            rebate_val = frappe.db.sql(""" SELECT item_group,sum(rebate_amt*-1)rebate_amt FROM (
+                                                    SELECT inv.name,it.qty,it.rate,it.amount,it.item_group,r.rebate_percentage,(it.base_amount*r.rebate_percentage/100)rebate_amt
+                                                    FROM `tabSales Invoice` inv, `tabSales Invoice Item` it, `tabRebate Definition` r where 
+                                                    inv.name = it.parent and it.item_group = r.item_group
+                                                    and inv.docstatus=1 and r.parent = %(rebate)s and it.item_code != 'REBATE' 
+                                                    and employee = %(employee)s and customer = %(customer)s and inv.company = %(company)s
+                                                    and posting_date between %(start_date)s and %(end_date)s)a1
+                                                    group by item_group """,
+                                                    {'employee': cust.sales_rep,'customer':cust.customer,'start_date':month_first_day,'end_date':month_last_day,'rebate':cust.name,'company':cust.company}, as_dict=True)
+            if rebate_val:
+                si = frappe.new_doc("Sales Invoice")
+                si.naming_series = 'ACC-SINV-.YYYY.-'
+                si.docstatus = 1
+                si.customer = cust.customer
+                si.employee = cust.sales_rep
+                si.is_return = 1
+                si.company = cust.company
+                si.posting_date = month_last_day
+                si.set_posting_time = 1
+                si.currency = cust.currency
+                si.update_stock = 0
+                si.doctype = 'Sales Invoice'
+                si.disable_rounded_total = 1
+                si.rebate_type = cust.rebate_type
+
+                cost_c = frappe.db.get_value('Company', cust.company, 'cost_center')
+                si.cost_center = cost_c
+
+                si.remarks = 'Rebate generated in the period of {0} and {1}. Rebate type : {2}'.format(month_first_day,month_last_day,cust.rebate_type)
+                total_rebate_val = 0.00
+                for rebate in rebate_val:
+
+                    total_rebate_val += rebate.rebate_amt*-1
+                    si.append("items",{
+                                        "item_code" : 'REBATE',
+                                        "description" : 'Rebate for item group {0} period {1} and {2}'.format(rebate.item_group,month_first_day,month_last_day),
+                                        "qty" : -1,
+                                        "rate" : rebate.rebate_amt*-1,
+                                        "amount" : rebate.rebate_amt,
+                                        "cost_center" :cost_c
+                                    })
+
+                slab_val = frappe.db.sql(""" SELECT extra_percentage FROM `tabRebate Slab` where {0} between total_sale_from and total_sale_to 
+                                                    and parent = %(rebate)s """.format(total_rebate_val),
+                                                    {'rebate': cust.name}, as_dict=True)
+
+                if slab_val:
+                    si.append("items",{
+                                        "item_code" : 'REBATE',
+                                        "description" : 'Rebate for exceed slab period {0} and {1}'.format(month_first_day,month_last_day),
+                                        "qty" : -1,
+                                        "rate" : (total_rebate_val*slab_val[0].extra_percentage/100),
+                                        "amount" : total_rebate_val*slab_val[0].extra_percentage/100,
+                                        "cost_center" :cost_c
+                                    })
+                sp = get_sales_person_by_rep(cust.sales_rep)
+
+                if sp:
+                    si.append("sales_team",{
+                                        "sales_person" : sp,
+                                        "allocated_percentage" : 100,
+                                    })
+                si.save(ignore_permissions=True)
+                # si.submit()
+
+def get_sales_person_by_rep(rep_id):
+    sales_person = frappe.db.sql(""" SELECT name FROM `tabSales Person` where employee = %(employee)s and is_group = 0 """,
+                            {'employee': rep_id}, as_dict=True)
+    if sales_person:
+        return sales_person[0].name
+    else:
+        return
+
+def already_process_rebate(customer,posting_date,rebate_type,company):
+    rebate_inv = frappe.db.sql("""SELECT name FROM `tabSales Invoice` where customer = %(customer)s and posting_date = %(posting_date)s 
+                                    and rebate_type = %(rebate_type)s and docstatus=1 and company = %(company)s""",
+                                    {'customer': customer,'posting_date':posting_date,'rebate_type':rebate_type,'company':company}, as_dict=True)
+    if rebate_inv:
+        return rebate_inv[0].name
+    else:
+        return
+# bench execute freeline.freeline.globalapi.generate_rebate_process

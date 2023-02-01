@@ -1,0 +1,150 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "naming_series:",
+ "creation": "2023-01-31 09:26:23.109813",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "company",
+  "customer",
+  "customer_name",
+  "sales_rep",
+  "employee_name",
+  "column_break_3",
+  "currency",
+  "customer_group",
+  "rebate_type",
+  "rebate_start_from",
+  "enabled",
+  "section_break_6",
+  "rebate_details",
+  "section_break_8",
+  "slab_details"
+ ],
+ "fields": [
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Read Only",
+   "label": "Customer Name"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fetch_from": "customer.default_currency",
+   "fieldname": "currency",
+   "fieldtype": "Read Only",
+   "label": "Currency",
+   "options": "Currency"
+  },
+  {
+   "fetch_from": "customer.customer_group",
+   "fieldname": "customer_group",
+   "fieldtype": "Read Only",
+   "label": "Customer Group",
+   "options": "Customer Group"
+  },
+  {
+   "fieldname": "section_break_6",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "rebate_details",
+   "fieldtype": "Table",
+   "label": "Rebate Details",
+   "options": "Rebate Definition"
+  },
+  {
+   "fieldname": "section_break_8",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "slab_details",
+   "fieldtype": "Table",
+   "label": "Slab Details",
+   "options": "Rebate Slab"
+  },
+  {
+   "fieldname": "sales_rep",
+   "fieldtype": "Link",
+   "label": "Sales Rep",
+   "options": "Employee"
+  },
+  {
+   "fetch_from": "sales_rep.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Read Only",
+   "label": "Employee Name"
+  },
+  {
+   "fieldname": "rebate_type",
+   "fieldtype": "Select",
+   "label": "Rebate Type",
+   "options": "Food Rebate\nNon Food Rebate\nCosmetics Rebate"
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Naming Series",
+   "options": "REBATE./.customer./.##",
+   "read_only": 1
+  },
+  {
+   "description": "Date must be first date of month.",
+   "fieldname": "rebate_start_from",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Rebate Start From",
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-01-31 17:13:49.674362",
+ "modified_by": "Administrator",
+ "module": "Freeline",
+ "name": "Rebate Process",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}
