@@ -25,13 +25,14 @@ class RebateProcess(Document):
 			frappe.throw("Rebate is already is exist in this customer with rebate type {0}".format(self.rebate_type))
 		
 		for grp in self.rebate_details:
-			
-			exist_item_group = frappe.db.sql("""SELECT customer,d.brand 
+
+
+			exist_brand = frappe.db.sql("""SELECT customer,d.brand 
 											FROM `tabRebate Process` r, `tabRebate Definition` d
 											where r.name = d.parent and r.customer = %(customer)s and d.brand = %(brand)s and r.name != %(name)s""",
 											{'customer': self.customer,'brand': grp.brand,'name':self.name}, as_dict=True)
 			
-			if exist_item_group:
+			if exist_brand:
 				frappe.throw("Brand already defined in other rebate of this customer.")
 
 				
