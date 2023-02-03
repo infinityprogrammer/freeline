@@ -43,7 +43,7 @@
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "customer.default_currency",
+   "fetch_from": "company.default_currency",
    "fieldname": "currency",
    "fieldtype": "Read Only",
    "label": "Currency",
@@ -126,7 +126,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-02-01 15:12:44.644810",
+ "modified": "2023-02-03 16:17:50.267096",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Rebate Process",
