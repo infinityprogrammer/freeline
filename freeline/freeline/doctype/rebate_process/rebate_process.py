@@ -16,8 +16,8 @@ class RebateProcess(Document):
 	
 	def validate(self):
 		exist = frappe.db.sql(""" SELECT name FROM `tabRebate Process` where customer = %(customer)s and rebate_type = %(rebate_type)s 
-									and name != %(name)s""",
-								{'customer': self.customer, 'rebate_type': self.rebate_type,'name':self.name}, as_dict=True)
+									and name != %(name)s and sales_rep = %(sales_rep)s""",
+								{'customer': self.customer, 'rebate_type': self.rebate_type,'name':self.name,'sales_rep':self.sales_rep}, as_dict=True)
 
 		if not self.rebate_details:
 			frappe.throw("Rebate details is mandatory")
@@ -29,8 +29,8 @@ class RebateProcess(Document):
 
 			exist_brand = frappe.db.sql("""SELECT customer,d.brand 
 											FROM `tabRebate Process` r, `tabRebate Definition` d
-											where r.name = d.parent and r.customer = %(customer)s and d.brand = %(brand)s and r.name != %(name)s""",
-											{'customer': self.customer,'brand': grp.brand,'name':self.name}, as_dict=True)
+											where r.name = d.parent and r.customer = %(customer)s and d.brand = %(brand)s and r.name != %(name)s and r.sales_rep = %(sales_rep)s""",
+											{'customer': self.customer,'brand': grp.brand,'name':self.name,'sales_rep':self.sales_rep}, as_dict=True)
 			
 			if exist_brand:
 				frappe.throw("Brand already defined in other rebate of this customer.")

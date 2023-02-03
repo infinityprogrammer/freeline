@@ -406,7 +406,7 @@ def generate_rebate_process():
     for cust in rebate_customer:
         # check rebate is already processed
         
-        prev_rebate = already_process_rebate(cust.customer,month_last_day,cust.rebate_type,cust.company)
+        prev_rebate = already_process_rebate(cust.customer,month_last_day,cust.rebate_type,cust.company,cust.sales_rep)
 
         if not prev_rebate:
             rebate_val = frappe.db.sql(""" SELECT brand,sum(rebate_amt*-1)rebate_amt FROM (
@@ -416,7 +416,7 @@ def generate_rebate_process():
                                                     and inv.docstatus=1 and r.parent = %(rebate)s and it.item_code != 'REBATE' 
                                                     and employee = %(employee)s and customer = %(customer)s and inv.company = %(company)s
                                                     and posting_date between %(start_date)s and %(end_date)s)a1
-                                                    group by brand """,
+                                                    group by brand HAVING sum(rebate_amt) > 0""",
                                                     {'employee': cust.sales_rep,'customer':cust.customer,'start_date':month_first_day,'end_date':month_last_day,'rebate':cust.name,'company':cust.company}, as_dict=True)
             if rebate_val:
                 si = frappe.new_doc("Sales Invoice")
@@ -450,7 +450,7 @@ def generate_rebate_process():
                                         "amount" : rebate.rebate_amt,
                                         "cost_center" :cost_c
                                     })
-                net_sale = net_sale_in_period(cust.customer, month_first_day, month_last_day, cust.company, cust.sales_rep)
+                net_sale = net_sale_in_period(cust.customer, month_first_day, month_last_day, cust.company, cust.sales_rep,cust.name)
                 slab_val = frappe.db.sql(""" SELECT extra_percentage FROM `tabRebate Slab` where {0} between total_sale_from and total_sale_to 
                                                     and parent = %(rebate)s """.format(net_sale),
                                                     {'rebate': cust.name}, as_dict=True)
@@ -483,19 +483,22 @@ def get_sales_person_by_rep(rep_id):
     else:
         return
 
-def already_process_rebate(customer,posting_date,rebate_type,company):
+def already_process_rebate(customer,posting_date,rebate_type,company,employee):
     rebate_inv = frappe.db.sql("""SELECT name FROM `tabSales Invoice` where customer = %(customer)s and posting_date = %(posting_date)s 
-                                    and rebate_type = %(rebate_type)s and docstatus=1 and company = %(company)s""",
-                                    {'customer': customer,'posting_date':posting_date,'rebate_type':rebate_type,'company':company}, as_dict=True)
+                                    and rebate_type = %(rebate_type)s and docstatus=1 and company = %(company)s AND employee = %(employee)s""",
+                                    {'customer': customer,'posting_date':posting_date,'rebate_type':rebate_type,'company':company,'employee':employee}, as_dict=True)
     if rebate_inv:
         return rebate_inv[0].name
     else:
         return
 
-def net_sale_in_period(customer,from_date,to_date,company,employee):
-    net_sale = frappe.db.sql(""" SELECT sum(grand_total)grand_total FROM `tabSales Invoice` where company = %(company)s and customer = %(customer)s
-                                    and posting_date between %(from_date)s and %(to_date)s and employee = %(employee)s and docstatus=1""",
-                                    {'customer': customer,'from_date':from_date,'to_date':to_date,'company':company,'employee':employee}, as_dict=True)
+def net_sale_in_period(customer,from_date,to_date,company,employee,rebate):
+    net_sale = frappe.db.sql("""SELECT sum(inv.grand_total)grand_total FROM `tabSales Invoice` inv, `tabSales Invoice Item` it 
+                                where inv.name = it.parent
+                                and inv.company = %(company)s and inv.customer = %(customer)s
+                                and inv.posting_date between %(from_date)s and %(to_date)s and inv.employee = %(employee)s and inv.docstatus=1
+                                and it.brand in (select brand from `tabRebate Definition` rd where rd.parent = %(rebate)s)""",
+                                {'customer': customer,'from_date':from_date,'to_date':to_date,'company':company,'employee':employee,'rebate':rebate}, as_dict=True)
     
     if net_sale:
         return net_sale[0].grand_total

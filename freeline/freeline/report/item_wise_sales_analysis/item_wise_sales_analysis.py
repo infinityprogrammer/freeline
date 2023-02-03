@@ -537,7 +537,7 @@ def get_items(filters, additional_query_columns):
 			`tabSales Invoice Item`.sales_order, `tabSales Invoice Item`.delivery_note,
 			`tabSales Invoice Item`.income_account, `tabSales Invoice Item`.cost_center,
 			`tabSales Invoice Item`.stock_qty, `tabSales Invoice Item`.stock_uom,
-			ifnull(`tabSales Invoice Item`.batch_no, (SELECT dt.batch_no FROM `tabDelivery Note Item` dt where dt.against_sales_invoice = `tabSales Invoice`.name and dt.si_detail = `tabSales Invoice Item`.name))batch_no,
+			ifnull(`tabSales Invoice Item`.batch_no, (SELECT GROUP_CONCAT(dt.batch_no) FROM `tabDelivery Note Item` dt where dt.against_sales_invoice = `tabSales Invoice`.name and dt.si_detail = `tabSales Invoice Item`.name))batch_no,
 			`tabSales Invoice Item`.base_net_rate, `tabSales Invoice Item`.base_net_amount,
 			`tabSales Invoice`.customer_name, `tabSales Invoice`.customer_group, `tabSales Invoice Item`.so_detail,`tabSales Invoice Item`.dn_detail,
 			`tabSales Invoice`.update_stock, `tabSales Invoice Item`.uom, `tabSales Invoice Item`.qty {0}
