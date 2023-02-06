@@ -5,6 +5,22 @@
 frappe.query_reports["Historic Valuation"] = {
 	"filters": [
 		{
+			"fieldname": "company",
+			"label": __("Company"),
+			"fieldtype": "Link",
+			"options": "Company",
+			"reqd":1,
+			"default":frappe.defaults.get_user_default("company")
+		},
+		{
+			"fieldname": "fiscal_year",
+			"label": __("Fiscal Year"),
+			"fieldtype": "Link",
+			"options": "Fiscal Year",
+			"reqd":1,
+			"default":frappe.defaults.get_user_default("fiscal_year")
+		},
+		{
 			"fieldname": "item_code",
 			"label": __("Item Code"),
 			"fieldtype": "Link",
@@ -24,14 +40,6 @@ frappe.query_reports["Historic Valuation"] = {
 			"label": __("Brand"),
 			"fieldtype": "Link",
 			"options": "Brand",
-		},
-		{
-			"fieldname": "fiscal_year",
-			"label": __("Fiscal Year"),
-			"fieldtype": "Link",
-			"options": "Fiscal Year",
-			"reqd":1,
-			"default":frappe.defaults.get_user_default("fiscal_year")
 		}
 	]
 };

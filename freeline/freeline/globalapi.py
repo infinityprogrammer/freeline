@@ -459,7 +459,7 @@ def generate_rebate_process():
                     
                     si.append("items",{
                                         "item_code" : 'REBATE',
-                                        "description" : 'Rebate for exceed slab period {0} and {1}'.format(month_first_day,month_last_day),
+                                        "description" : 'Rebate for exceed slab period {0} and {1}. Total brand sale {2}'.format(month_first_day,month_last_day,net_sale),
                                         "qty" : -1,
                                         "rate" : (net_sale*slab_val[0].extra_percentage/100),
                                         "amount" : net_sale*slab_val[0].extra_percentage/100,
@@ -493,7 +493,7 @@ def already_process_rebate(customer,posting_date,rebate_type,company,employee):
         return
 
 def net_sale_in_period(customer,from_date,to_date,company,employee,rebate):
-    net_sale = frappe.db.sql("""SELECT sum(inv.grand_total)grand_total FROM `tabSales Invoice` inv, `tabSales Invoice Item` it 
+    net_sale = frappe.db.sql("""SELECT sum(inv.base_grand_total)base_grand_total FROM `tabSales Invoice` inv, `tabSales Invoice Item` it 
                                 where inv.name = it.parent
                                 and inv.company = %(company)s and inv.customer = %(customer)s
                                 and inv.posting_date between %(from_date)s and %(to_date)s and inv.employee = %(employee)s and inv.docstatus=1
@@ -501,7 +501,7 @@ def net_sale_in_period(customer,from_date,to_date,company,employee,rebate):
                                 {'customer': customer,'from_date':from_date,'to_date':to_date,'company':company,'employee':employee,'rebate':rebate}, as_dict=True)
     
     if net_sale:
-        return net_sale[0].grand_total
+        return net_sale[0].base_grand_total
     else:
         return 0
 

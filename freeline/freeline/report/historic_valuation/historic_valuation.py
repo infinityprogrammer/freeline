@@ -36,51 +36,51 @@ def get_data(filters):
 		SELECT item_code,item_name,item_group,brand,
 		(SELECT ifnull(round(avg(valuation_rate), 2),0)
 		FROM `tabStock Ledger Entry` sle where YEAR(sle.posting_date) = %(fiscal_year)s and MONTH(sle.posting_date)=1 
-		and sle.is_cancelled=0 and sle.item_code = item.item_code)jan,
+		and sle.is_cancelled=0 and sle.item_code = item.item_code AND company = %(company)s)jan,
 		--
 		(SELECT ifnull(round(avg(valuation_rate), 2),0)
 		FROM `tabStock Ledger Entry` sle where YEAR(sle.posting_date) = %(fiscal_year)s and MONTH(sle.posting_date)=2 
-		and sle.is_cancelled=0 and sle.item_code = item.item_code)feb,
+		and sle.is_cancelled=0 and sle.item_code = item.item_code AND company = %(company)s)feb,
 		--
 		(SELECT ifnull(round(avg(valuation_rate), 2),0)
 		FROM `tabStock Ledger Entry` sle where YEAR(sle.posting_date) = %(fiscal_year)s and MONTH(sle.posting_date)=3
-		and sle.is_cancelled=0 and sle.item_code = item.item_code)mar,
+		and sle.is_cancelled=0 and sle.item_code = item.item_code AND company = %(company)s)mar,
 		--
 		(SELECT ifnull(round(avg(valuation_rate), 2),0)
 		FROM `tabStock Ledger Entry` sle where YEAR(sle.posting_date) = %(fiscal_year)s and MONTH(sle.posting_date)=4 
-		and sle.is_cancelled=0 and sle.item_code = item.item_code)apr,
+		and sle.is_cancelled=0 and sle.item_code = item.item_code AND company = %(company)s)apr,
 		--
 		(SELECT ifnull(round(avg(valuation_rate), 2),0)
 		FROM `tabStock Ledger Entry` sle where YEAR(sle.posting_date) = %(fiscal_year)s and MONTH(sle.posting_date)=5
-		and sle.is_cancelled=0 and sle.item_code = item.item_code)may,
+		and sle.is_cancelled=0 and sle.item_code = item.item_code AND company = %(company)s)may,
 		--
 		(SELECT ifnull(round(avg(valuation_rate), 2),0)
 		FROM `tabStock Ledger Entry` sle where YEAR(sle.posting_date) = %(fiscal_year)s and MONTH(sle.posting_date)=6 
-		and sle.is_cancelled=0 and sle.item_code = item.item_code)jun,
+		and sle.is_cancelled=0 and sle.item_code = item.item_code AND company = %(company)s)jun,
 		--
 		(SELECT ifnull(round(avg(valuation_rate), 2),0)
 		FROM `tabStock Ledger Entry` sle where YEAR(sle.posting_date) = %(fiscal_year)s and MONTH(sle.posting_date)=7
-		and sle.is_cancelled=0 and sle.item_code = item.item_code)july,
+		and sle.is_cancelled=0 and sle.item_code = item.item_code AND company = %(company)s)july,
 		--
 		(SELECT ifnull(round(avg(valuation_rate), 2),0)
 		FROM `tabStock Ledger Entry` sle where YEAR(sle.posting_date) = %(fiscal_year)s and MONTH(sle.posting_date)=8 
-		and sle.is_cancelled=0 and sle.item_code = item.item_code)aug,
+		and sle.is_cancelled=0 and sle.item_code = item.item_code AND company = %(company)s)aug,
 		--
 		(SELECT ifnull(round(avg(valuation_rate), 2),0)
 		FROM `tabStock Ledger Entry` sle where YEAR(sle.posting_date) = %(fiscal_year)s and MONTH(sle.posting_date)=9
-		and sle.is_cancelled=0 and sle.item_code = item.item_code)sep,
+		and sle.is_cancelled=0 and sle.item_code = item.item_code AND company = %(company)s)sep,
 		--
 		(SELECT ifnull(round(avg(valuation_rate), 2),0)
 		FROM `tabStock Ledger Entry` sle where YEAR(sle.posting_date) = %(fiscal_year)s and MONTH(sle.posting_date)=10
-		and sle.is_cancelled=0 and sle.item_code = item.item_code)oct,
+		and sle.is_cancelled=0 and sle.item_code = item.item_code AND company = %(company)s)oct,
 		--
 		(SELECT ifnull(round(avg(valuation_rate), 2),0)
 		FROM `tabStock Ledger Entry` sle where YEAR(sle.posting_date) = %(fiscal_year)s and MONTH(sle.posting_date)=11
-		and sle.is_cancelled=0 and sle.item_code = item.item_code)nov,
+		and sle.is_cancelled=0 and sle.item_code = item.item_code AND company = %(company)s)nov,
 		--
 		(SELECT ifnull(round(avg(valuation_rate), 2),0)
 		FROM `tabStock Ledger Entry` sle where YEAR(sle.posting_date) = %(fiscal_year)s and MONTH(sle.posting_date)=12
-		and sle.is_cancelled=0 and sle.item_code = item.item_code)dece
+		and sle.is_cancelled=0 and sle.item_code = item.item_code AND company = %(company)s)dece
 		--
 		FROM `tabItem` item where 1=1 {0}""".format(conditions),filters,as_dict=1)
 
