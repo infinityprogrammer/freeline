@@ -22,7 +22,11 @@
   "duration",
   "brand",
   "description",
-  "enabled"
+  "enabled",
+  "section_break_17",
+  "generated_invoices",
+  "invoices",
+  "total_amount"
  ],
  "fields": [
   {
@@ -135,14 +139,36 @@
    "fieldname": "status",
    "fieldtype": "Select",
    "label": "Status",
-   "options": "Not Started\nRunning\nExpired",
+   "options": "Not Started\nRunning\nCompleted",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_17",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "generated_invoices",
+   "fieldtype": "Heading",
+   "label": "Generated Invoices"
+  },
+  {
+   "allow_bulk_edit": 1,
+   "fieldname": "invoices",
+   "fieldtype": "Table",
+   "label": "Invoices",
+   "options": "Rental Invoices"
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "label": "Total Amount",
    "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-02-08 16:32:17.132054",
+ "modified": "2023-02-09 12:55:11.922037",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Shelf Rental Agreement",

@@ -139,6 +139,9 @@ scheduler_events = {
 		"10 0 1 * *": [
 			"freeline.freeline.globalapi.generate_rebate_process",
 		],
+		"10 4 1 * *": [
+			"freeline.freeline.globalapi.generate_shelf_rentals",
+		],
 	},
 }
 

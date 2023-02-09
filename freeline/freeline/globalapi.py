@@ -514,13 +514,17 @@ def net_sale_in_period(customer,from_date,to_date,company,employee,rebate):
 
 def generate_shelf_rentals():
 
-    yesterday = datetime.date.today() - datetime.timedelta(days=1)
     last_month_last_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
     month_first_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=last_month_last_day.day)
 
 
-    shelf_rental_entries = frappe.db.sql(""" SELECT * FROM `tabShelf Rental Agreement` where docstatus=1 and enabled=1 and to_date >= %(date)s """,
-                            {'date': last_month_last_day}, as_dict=True)
+    shelf_rental_entries = frappe.db.sql("""SELECT a.name,a.company,a.currency,rent_type,description,from_date,to_date,a.amount,a.brand,a.sales_rep,a.customer,
+                                            b.name as detl_name,is_generated,b.date,b.idx 
+                                            FROM `tabShelf Rental Agreement` a, `tabRental Invoices` b
+                                            where a.name = b.parent and b.date = %(date)s
+                                            and a.docstatus=1 
+                                            and a.enabled=1 and a.to_date >= %(date)s
+                                            and is_generated = 0 """,{'date': last_month_last_day}, as_dict=True)
 
     for entry in shelf_rental_entries:
         
@@ -564,6 +568,32 @@ def generate_shelf_rentals():
                                     "allocated_percentage" : 100,
                                 })
             si.save(ignore_permissions=True)
+            update_invoice_genetrate(entry.name, entry.detl_name,si.name, entry.amount)
+            update_shelf_status(entry.date, entry.from_date, entry.to_date, entry.detl_name,entry.name,entry.idx)
+
+def update_invoice_genetrate(sr,detl_name, inv, amount):
+    update_inv = frappe.db.sql(""" UPDATE `tabRental Invoices` SET voucher_no = %(inv)s,is_generated = 1,amount = %(amount)s WHERE name = %(detl_name)s and parent = %(sr)s """,
+                                {'inv': inv,'detl_name':detl_name,'sr':sr,'amount':amount}, as_dict=True)
+    return update_inv
+
+def update_shelf_status(date, from_date,to_date,detl_name,name,idx):
+    
+    if idx == 1:
+        update_start = frappe.db.sql(""" UPDATE `tabShelf Rental Agreement` SET status = 'Running' where name = %(name)s """,
+                                {'name': name}, as_dict=True)
+    max_idx = get_max_idx(name)
+    if max_idx == idx:
+        update_complete = frappe.db.sql(""" UPDATE `tabShelf Rental Agreement` SET status = 'Completed' where name = %(name)s """,
+                                {'name': name}, as_dict=True)
+
+def get_max_idx(name):
+    max_id = frappe.db.sql(""" SELECT max(idx)idx FROM `tabRental Invoices` where parent = %(name)s """,
+                                    {'name': name}, as_dict=True)
+    if max_id:
+        return max_id[0].idx
+    else:
+        return
+
 
 
 def already_process_shelf_rental(company, customer, sales_rep, month_last_day, brand, shelf_rent_ref):
@@ -592,4 +622,4 @@ def get_brand_sale(rebate, sales_rep,customer,company, month_first_day,month_las
     else:
         return
 
-# bench execute freeline.freeline.globalapi.generate_rebate_process
+# bench execute freeline.freeline.globalapi.generate_shelf_rentals
