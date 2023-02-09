@@ -88,6 +88,8 @@ def _execute(filters=None, additional_table_columns=None, additional_query_colum
 			"customer_name": customer_record.customer_name,
 			"customer_group": customer_record.customer_group,
 			"barcode": d.barcode,
+			"parent_item_group1": d.parent_item_group1,
+			"parent_item_group2": d.parent_item_group2,
 		}
 
 		if additional_query_columns:
@@ -208,7 +210,21 @@ def get_columns(additional_table_columns, filters):
 					"fieldtype": "Link",
 					"options": "Item Group",
 					"width": 120,
-				}
+				},
+				{
+					"label": _("Item Group Parent 1"),
+					"fieldname": "parent_item_group1",
+					"fieldtype": "Link",
+					"options": "Item Group",
+					"width": 140,
+				},
+				{
+					"label": _("Item Group Parent 2"),
+					"fieldname": "parent_item_group2",
+					"fieldtype": "Link",
+					"options": "Item Group",
+					"width": 140,
+				},
 			]
 		)
 
@@ -537,6 +553,8 @@ def get_items(filters, additional_query_columns):
 			`tabSales Invoice Item`.sales_order, `tabSales Invoice Item`.delivery_note,
 			`tabSales Invoice Item`.income_account, `tabSales Invoice Item`.cost_center,
 			`tabSales Invoice Item`.stock_qty, `tabSales Invoice Item`.stock_uom,
+			(SELECT parent_item_group FROM `tabItem Group` ig where ig.name = `tabSales Invoice Item`.`item_group`)parent_item_group1,
+			(SELECT parent_item_group FROM `tabItem Group` ig2 where ig2.name = (SELECT parent_item_group FROM `tabItem Group` ig where ig.name = `tabSales Invoice Item`.`item_group`))parent_item_group2,
 			ifnull(`tabSales Invoice Item`.batch_no, (SELECT GROUP_CONCAT(dt.batch_no) FROM `tabDelivery Note Item` dt where dt.against_sales_invoice = `tabSales Invoice`.name and dt.si_detail = `tabSales Invoice Item`.name))batch_no,
 			`tabSales Invoice Item`.base_net_rate, `tabSales Invoice Item`.base_net_amount,
 			`tabSales Invoice`.customer_name, `tabSales Invoice`.customer_group, `tabSales Invoice Item`.so_detail,`tabSales Invoice Item`.dn_detail,
@@ -577,7 +595,7 @@ def get_delivery_notes_against_sales_order(item_list):
 def get_dn_num(order_no):
     
     condition = ""
-    dn_num = frappe.db.sql(""" SELECT GROUP_CONCAT(parent)parent FROM `tabDelivery Note Item`
+    dn_num = frappe.db.sql(""" SELECT GROUP_CONCAT(distinct parent)parent FROM `tabDelivery Note Item`
                                 where against_sales_order = %(order_no)s""",{'order_no':order_no}, as_dict=True)
     return dn_num
 

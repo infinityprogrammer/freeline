@@ -6,6 +6,7 @@ from frappe import _
 import json
 import datetime
 
+
 # Number Card APIs for Dashboard
 
 @frappe.whitelist()
@@ -400,6 +401,9 @@ def generate_rebate_process():
     month_last_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
     month_first_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=month_last_day.day)
 
+    # print("----month_last_day--")
+    # print(month_last_day)
+
     rebate_customer = frappe.db.sql(""" SELECT * FROM `tabRebate Process` where rebate_start_from <= %(date)s and enabled = 1""",
                             {'date': datetime.date.today()}, as_dict=True)
     
@@ -437,14 +441,16 @@ def generate_rebate_process():
                 cost_c = frappe.db.get_value('Company', cust.company, 'cost_center')
                 si.cost_center = cost_c
 
-                si.remarks = 'Rebate generated in the period of {0} and {1}. Rebate type : {2}'.format(month_first_day,month_last_day,cust.rebate_type)
+                si.remarks = 'Rebate generated in the period of {0} and {1}. Rebate type : {2}, Ref - {3}'.format(month_first_day,month_last_day,cust.rebate_type, cust.name)
                 total_rebate_val = 0.00
-                for rebate in rebate_val:
 
+                for rebate in rebate_val:
+                    brand_obj = get_brand_sale(cust.name, cust.sales_rep, cust.customer, cust.company, month_first_day, month_last_day, rebate.brand)
+                    
                     total_rebate_val += rebate.rebate_amt*-1
                     si.append("items",{
                                         "item_code" : 'REBATE',
-                                        "description" : 'Rebate for brand {0} period {1} and {2}'.format(rebate.brand,month_first_day,month_last_day),
+                                        "description" : 'Brand : {0} - Period : {1} and {2} - Total Brand sale : {3} - Rebate Percentage : {4}'.format(rebate.brand,month_first_day,month_last_day,brand_obj[0].amount,brand_obj[0].rebate_percentage),
                                         "qty" : -1,
                                         "rate" : rebate.rebate_amt*-1,
                                         "amount" : rebate.rebate_amt,
@@ -505,5 +511,85 @@ def net_sale_in_period(customer,from_date,to_date,company,employee,rebate):
     else:
         return 0
 
+
+def generate_shelf_rentals():
+
+    yesterday = datetime.date.today() - datetime.timedelta(days=1)
+    last_month_last_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
+    month_first_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=last_month_last_day.day)
+
+
+    shelf_rental_entries = frappe.db.sql(""" SELECT * FROM `tabShelf Rental Agreement` where docstatus=1 and enabled=1 and to_date >= %(date)s """,
+                            {'date': last_month_last_day}, as_dict=True)
+
+    for entry in shelf_rental_entries:
+        
+        prev_rent = already_process_shelf_rental(entry.company, entry.customer, entry.sales_rep, last_month_last_day, entry.brand,entry.name)
+        
+        if not prev_rent:
+            si = frappe.new_doc("Sales Invoice")
+            si.naming_series = 'ACC-SINV-.YYYY.-'
+            si.docstatus = 1
+            si.customer = entry.customer
+            si.employee = entry.sales_rep
+            si.is_return = 1
+            si.company = entry.company
+            si.posting_date = last_month_last_day
+            si.set_posting_time = 1
+            si.currency = entry.currency
+            si.update_stock = 0
+            si.doctype = 'Sales Invoice'
+            si.disable_rounded_total = 1
+            si.shelf_rent_ref = entry.name
+
+            cost_c = frappe.db.get_value('Company', entry.company, 'cost_center')
+            si.cost_center = cost_c
+
+            si.remarks = 'Shelf rental generated in the period of {0} and {1}. type : {2} - {3}'.format(month_first_day,last_month_last_day,entry.rent_type,entry.description)
+            
+            si.append("items",{
+                                "item_code" : 'SHELF RENT',
+                                "description" : 'Shelf rental generated in the period of {0} and {1}. Rebate type : {2} - {3}'.format(month_first_day,last_month_last_day,entry.rent_type,entry.description),
+                                "qty" : -1,
+                                "rate" : entry.amount,
+                                "amount" : entry.amount,
+                                "cost_center" :cost_c
+                            })
+            
+            sp = get_sales_person_by_rep(entry.sales_rep)
+
+            if sp:
+                si.append("sales_team",{
+                                    "sales_person" : sp,
+                                    "allocated_percentage" : 100,
+                                })
+            si.save(ignore_permissions=True)
+
+
+def already_process_shelf_rental(company, customer, sales_rep, month_last_day, brand, shelf_rent_ref):
+    rental_inv = frappe.db.sql("""SELECT name FROM `tabSales Invoice` where customer = %(customer)s and posting_date = %(posting_date)s 
+                                    and shelf_rent_ref = %(shelf_rent_ref)s and docstatus=1 and company = %(company)s AND employee = %(employee)s""",
+                                    {'customer': customer,'posting_date':month_last_day,'shelf_rent_ref':shelf_rent_ref,'company':company,'employee':sales_rep}, as_dict=True)
+    if rental_inv:
+        return rental_inv[0].name
+    else:
+        return
+
+
+def get_brand_sale(rebate, sales_rep,customer,company, month_first_day,month_last_day, brand):
+    brand_sale_val = frappe.db.sql(""" SELECT it.brand,r.rebate_percentage,sum(it.amount)amount,sum((it.base_amount*r.rebate_percentage/100))rebate_amt
+                                    FROM `tabSales Invoice` inv, `tabSales Invoice Item` it, `tabRebate Definition` r where 
+                                    inv.name = it.parent and it.brand = r.brand
+                                    and inv.docstatus=1 
+                                    and r.parent = %(rebate)s
+                                    and it.item_code != 'REBATE' 
+                                    and employee = %(employee)s and customer = %(customer)s and inv.company = %(company)s
+                                    and posting_date between %(start_date)s and %(end_date)s and it.brand = %(brand)s
+                                    group by it.brand,r.rebate_percentage """,
+                                    {'rebate':rebate,'employee': sales_rep,'customer':customer,'company':company,'start_date':month_first_day,'end_date':month_last_day,'brand':brand}, as_dict=True)
+    if brand_sale_val:
+        return brand_sale_val
+    else:
+        return
 
 # bench execute freeline.freeline.globalapi.generate_rebate_process

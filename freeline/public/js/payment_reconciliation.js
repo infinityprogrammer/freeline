@@ -26,6 +26,12 @@ frappe.ui.form.on("Payment Reconciliation", {
                     frappe.model.set_value(payments.doctype,payments.name,"employee_name",r.employee_name);
                 });
             }
+
+            if (payments.reference_type == "Sales Invoice"){
+                frappe.db.get_value("Sales Invoice", {"name": payments.reference_name}, "employee_name", (r) => {
+                    frappe.model.set_value(payments.doctype,payments.name,"employee_name",r.employee_name);
+                });
+            }
 	    });
     },
     
