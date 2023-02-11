@@ -136,14 +136,15 @@ def get_average_age(fifo_queue: List, to_date: str) -> float:
 	batch_age = age_qty = total_qty = 0.0
 	for batch in fifo_queue:
 		batch_age = date_diff(to_date, batch[1])
-
+		print("--------")
+		print(batch)
 		if isinstance(batch[0], (int, float)):
 			age_qty += batch_age * batch[0]
 			total_qty += batch[0]
 		else:
 			age_qty += batch_age * 1
 			total_qty += 1
-
+		
 	return flt(age_qty / total_qty, 2) if total_qty else 0.0
 
 
@@ -211,8 +212,8 @@ def get_columns(filters: Filters) -> List[Dict]:
 
 	columns.extend(
 		[
-			{"label": _("Available Qty"), "fieldname": "qty", "fieldtype": "Float", "width": 100},
-			{"label": _("Average Age"), "fieldname": "average_age", "fieldtype": "Float", "width": 100},
+			{"label": _("Available Qty"), "fieldname": "qty", "fieldtype": "Float", "width": 140},
+			{"label": _("Average Age (D)"), "fieldname": "average_age", "fieldtype": "Float", "width": 140},
 		]
 	)
 	columns.extend(range_columns)
@@ -228,8 +229,8 @@ def get_columns(filters: Filters) -> List[Dict]:
 			{"label": _("Sale (91-120)"), "fieldname": "m4", "fieldtype": "Float", "width": 140},
 			{"label": _("Sale (121-150)"), "fieldname": "m5", "fieldtype": "Float", "width": 140},
 			{"label": _("Sale (151-180)"), "fieldname": "m6", "fieldtype": "Float", "width": 140},
-			{"label": _("Usage Rate"), "fieldname": "usage_rate", "fieldtype": "Float", "width": 140},
-			{"label": _("Stock Cover"), "fieldname": "stock_cover", "fieldtype": "Float", "width": 140},
+			{"label": _("Usage Rate (Q)"), "fieldname": "usage_rate", "fieldtype": "Float", "width": 140},
+			{"label": _("Stock Cover (M)"), "fieldname": "stock_cover", "fieldtype": "Float", "width": 140},
 			{"label": _("Turnover Rate"), "fieldname": "turnover_rate", "fieldtype": "Float", "width": 140},
 		]
 	)
