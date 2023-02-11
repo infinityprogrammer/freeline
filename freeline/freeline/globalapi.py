@@ -454,7 +454,8 @@ def generate_rebate_process():
                                         "qty" : -1,
                                         "rate" : rebate.rebate_amt*-1,
                                         "amount" : rebate.rebate_amt,
-                                        "cost_center" :cost_c
+                                        "cost_center" :cost_c,
+                                        "brand" :rebate.brand,
                                     })
                 net_sale = net_sale_in_period(cust.customer, month_first_day, month_last_day, cust.company, cust.sales_rep,cust.name)
                 slab_val = frappe.db.sql(""" SELECT extra_percentage FROM `tabRebate Slab` where {0} between total_sale_from and total_sale_to 

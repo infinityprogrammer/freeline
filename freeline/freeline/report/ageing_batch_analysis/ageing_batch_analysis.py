@@ -59,11 +59,16 @@ def format_report_data(filters: Filters, item_details: Dict, to_date: str) -> Li
 		usage_rate = 0.0
 		usage_rate += cost_and_sale[0].m1 + cost_and_sale[0].m2 + cost_and_sale[0].m3 + cost_and_sale[0].m4 + cost_and_sale[0].m5 + cost_and_sale[0].m6
 		usage_rate = (usage_rate/6)
+		usage_rate_div = 0.0
+		if usage_rate:
+			usage_rate_div = usage_rate
+		else:
+			usage_rate_div = 1
 
 		avail_qty = flt(item_dict.get("total_qty"), precision)
-		stock_cover = (avail_qty/usage_rate)
+		stock_cover = (avail_qty/usage_rate_div)
 		turnover_rate = (12/stock_cover)
-
+		
 		row.extend(
 			[
 				flt(item_dict.get("total_qty"), precision),
