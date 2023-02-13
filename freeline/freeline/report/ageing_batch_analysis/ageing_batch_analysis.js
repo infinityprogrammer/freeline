@@ -38,13 +38,19 @@ frappe.query_reports["Ageing Batch Analysis"] = {
 			"fieldname":"item_code",
 			"label": __("Item"),
 			"fieldtype": "Link",
-			"options": "Item"
+			"options": "Item",
 		},
 		{
 			"fieldname":"brand",
 			"label": __("Brand"),
 			"fieldtype": "Link",
 			"options": "Brand"
+		},
+		{
+			"fieldname":"supplier",
+			"label": __("Supplier"),
+			"fieldtype": "Link",
+			"options": "Supplier"
 		},
 		{
 			"fieldname":"range1",
@@ -65,6 +71,13 @@ frappe.query_reports["Ageing Batch Analysis"] = {
 			"label": __("Ageing Range 3"),
 			"fieldtype": "Int",
 			"default": "90",
+			"reqd": 1
+		},
+		{
+			"fieldname":"range4",
+			"label": __("Ageing Range 4"),
+			"fieldtype": "Int",
+			"default": "120",
 			"reqd": 1
 		},
 		{

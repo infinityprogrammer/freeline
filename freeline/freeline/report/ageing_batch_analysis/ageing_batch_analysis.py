@@ -20,8 +20,12 @@ def execute(filters: Filters = None) -> Tuple:
 
 	item_details = FIFOSlots(filters).generate()
 	data = format_report_data(filters, item_details, to_date)
-
-	chart_data = get_chart_data(data, filters)
+	
+	# chart_data = get_chart_data(data, filters)
+	
+	if filters.get("supplier"):
+		supp_id = filters.get("supplier")
+		data = list(filter(lambda data: data[-1] == supp_id, data))
 	
 	return columns, data, None
 
@@ -34,21 +38,28 @@ def format_report_data(filters: Filters, item_details: Dict, to_date: str) -> Li
 	precision = cint(frappe.db.get_single_value("System Settings", "float_precision", cache=True))
 
 	for item, item_dict in item_details.items():
-		if not flt(item_dict.get("total_qty"), precision):
-			continue
+		
+		# if not flt(item_dict.get("total_qty"), precision):
+		# 	continue
+		
 
 		earliest_age, latest_age = 0, 0
 		details = item_dict["details"]
 
 		fifo_queue = sorted(filter(_func, item_dict["fifo_queue"]), key=_func)
 		
-		if not fifo_queue:
-			continue
+		average_age = 0
+		earliest_age = 0
+		latest_age = 0
+		range1, range2, range3,range4,above_range4 = 0,0,0,0,0
 
-		average_age = get_average_age(fifo_queue, to_date)
-		earliest_age = date_diff(to_date, fifo_queue[0][1])
-		latest_age = date_diff(to_date, fifo_queue[-1][1])
-		range1, range2, range3, above_range3 = get_range_age(filters, fifo_queue, to_date, item_dict)
+		if fifo_queue:
+			average_age = get_average_age(fifo_queue, to_date)
+			earliest_age = date_diff(to_date, fifo_queue[0][1])
+			latest_age = date_diff(to_date, fifo_queue[-1][1])
+			range1, range2, range3,range4,above_range4 = get_range_age(filters, fifo_queue, to_date, item_dict)
+
+		
 		cost_and_sale = get_item_sale_info(details.name, filters)
 
 		row = [details.name, details.item_name, details.description, details.item_group, details.brand]
@@ -57,7 +68,9 @@ def format_report_data(filters: Filters, item_details: Dict, to_date: str) -> Li
 			row.append(details.warehouse)
 		
 		usage_rate = 0.0
+		six_month_qty = 0.0
 		usage_rate += cost_and_sale[0].m1 + cost_and_sale[0].m2 + cost_and_sale[0].m3 + cost_and_sale[0].m4 + cost_and_sale[0].m5 + cost_and_sale[0].m6
+		six_month_qty += cost_and_sale[0].m1 + cost_and_sale[0].m2 + cost_and_sale[0].m3 + cost_and_sale[0].m4 + cost_and_sale[0].m5 + cost_and_sale[0].m6
 		usage_rate = (usage_rate/6)
 		usage_rate_div = 0.0
 		if usage_rate:
@@ -67,35 +80,65 @@ def format_report_data(filters: Filters, item_details: Dict, to_date: str) -> Li
 
 		avail_qty = flt(item_dict.get("total_qty"), precision)
 		stock_cover = (avail_qty/usage_rate_div)
-		turnover_rate = (12/stock_cover)
+		turnover_rate = 0.0
+		if stock_cover:
+			turnover_rate = (12/stock_cover)
+		else:
+			turnover_rate = 0
+
+		last_rec_date,last_rec_qty,supplier_code  = get_last_reciept_date(details.name, filters)
 		
 		row.extend(
 			[
 				flt(item_dict.get("total_qty"), precision),
 				average_age,
+				cost_and_sale[0].stock_value,
 				range1,
 				range2,
 				range3,
-				above_range3,
+				range4,
+				above_range4,
 				earliest_age,
 				latest_age,
+				last_rec_date,
+				last_rec_qty,
 				details.stock_uom,
-				cost_and_sale[0].stock_value,
 				cost_and_sale[0].m1,
 				cost_and_sale[0].m2,
 				cost_and_sale[0].m3,
 				cost_and_sale[0].m4,
 				cost_and_sale[0].m5,
 				cost_and_sale[0].m6,
+				six_month_qty,
 				usage_rate,
 				stock_cover,
-				turnover_rate
+				turnover_rate,
+				supplier_code
 			]
 		)
 
 		data.append(row)
 
 	return data
+
+def get_last_reciept_date(item_code, filters):
+	last_rec_date = 0
+	last_rec_qty = 0
+	supplier_code = ""
+	cmp = filters.get("company")
+
+	last_rec = frappe.db.sql(""" SELECT posting_date,b.stock_qty FROM `tabPurchase Receipt` a, `tabPurchase Receipt Item` b
+									where a.name = b.parent and a.docstatus=1 and b.item_code= '{0}' and company = '{1}'
+									order by posting_date desc limit 1 """.format(item_code, cmp), as_dict=True)
+	if last_rec:
+		last_rec_date = last_rec[0].posting_date
+		last_rec_qty = last_rec[0].stock_qty
+	
+	supp_qry = frappe.db.sql(""" SELECT supplier FROM `tabItem Supplier` where parent = '{0}';""".format(item_code), as_dict=True)
+	if supp_qry:
+		supplier_code = supp_qry[0].supplier
+
+	return last_rec_date, last_rec_qty, supplier_code
 
 def get_item_sale_info(item_code_name, filters):
 
@@ -136,8 +179,7 @@ def get_average_age(fifo_queue: List, to_date: str) -> float:
 	batch_age = age_qty = total_qty = 0.0
 	for batch in fifo_queue:
 		batch_age = date_diff(to_date, batch[1])
-		print("--------")
-		print(batch)
+		
 		if isinstance(batch[0], (int, float)):
 			age_qty += batch_age * batch[0]
 			total_qty += batch[0]
@@ -152,7 +194,7 @@ def get_range_age(filters: Filters, fifo_queue: List, to_date: str, item_dict: D
 
 	precision = cint(frappe.db.get_single_value("System Settings", "float_precision", cache=True))
 
-	range1 = range2 = range3 = above_range3 = 0.0
+	range1 = range2 = range3 = range4 = above_range4 = 0.0
 
 	for item in fifo_queue:
 		age = date_diff(to_date, item[1])
@@ -164,10 +206,12 @@ def get_range_age(filters: Filters, fifo_queue: List, to_date: str, item_dict: D
 			range2 = flt(range2 + qty, precision)
 		elif age <= filters.range3:
 			range3 = flt(range3 + qty, precision)
+		elif age <= filters.range3:
+			range4 = flt(range4 + qty, precision)
 		else:
-			above_range3 = flt(above_range3 + qty, precision)
+			above_range4 = flt(above_range4 + qty, precision)
 
-	return range1, range2, range3, above_range3
+	return range1, range2, range3,range4, above_range4
 
 
 def get_columns(filters: Filters) -> List[Dict]:
@@ -212,26 +256,30 @@ def get_columns(filters: Filters) -> List[Dict]:
 
 	columns.extend(
 		[
-			{"label": _("Available Qty"), "fieldname": "qty", "fieldtype": "Float", "width": 140},
+			{"label": _("Qty on Hand"), "fieldname": "qty", "fieldtype": "Float", "width": 140},
 			{"label": _("Average Age (D)"), "fieldname": "average_age", "fieldtype": "Float", "width": 140},
+			{"label": _("Cost"), "fieldname": "stock_value", "fieldtype": "Float", "width": 100},
 		]
 	)
 	columns.extend(range_columns)
 	columns.extend(
 		[
-			{"label": _("Earliest"), "fieldname": "earliest", "fieldtype": "Int", "width": 80},
-			{"label": _("Latest"), "fieldname": "latest", "fieldtype": "Int", "width": 80},
+			{"label": _("Earliest reciept days"), "fieldname": "earliest", "fieldtype": "Int", "width": 160},
+			{"label": _("Latest reciept days"), "fieldname": "latest", "fieldtype": "Int", "width": 160},
+			{"label": _("Latest reciept date"), "fieldname": "last_rec_date", "fieldtype": "Date", "width": 160},
+			{"label": _("Latest reciept qty"), "fieldname": "last_rec_qty", "fieldtype": "Int", "width": 160},
 			{"label": _("UOM"), "fieldname": "uom", "fieldtype": "Link", "options": "UOM", "width": 100},
-			{"label": _("Cost"), "fieldname": "stock_value", "fieldtype": "Float", "width": 100},
 			{"label": _("Sale (0-30)"), "fieldname": "m1", "fieldtype": "Float", "width": 140},
 			{"label": _("Sale (31-60)"), "fieldname": "m2", "fieldtype": "Float", "width": 140},
 			{"label": _("Sale (61-90)"), "fieldname": "m3", "fieldtype": "Float", "width": 140},
 			{"label": _("Sale (91-120)"), "fieldname": "m4", "fieldtype": "Float", "width": 140},
 			{"label": _("Sale (121-150)"), "fieldname": "m5", "fieldtype": "Float", "width": 140},
 			{"label": _("Sale (151-180)"), "fieldname": "m6", "fieldtype": "Float", "width": 140},
+			{"label": _("Total Qty Sold in 6 M"), "fieldname": "six_month_qty", "fieldtype": "Float", "width": 160},
 			{"label": _("Usage Rate (Q)"), "fieldname": "usage_rate", "fieldtype": "Float", "width": 140},
 			{"label": _("Stock Cover (M)"), "fieldname": "stock_cover", "fieldtype": "Float", "width": 140},
 			{"label": _("Turnover Rate"), "fieldname": "turnover_rate", "fieldtype": "Float", "width": 140},
+			{"label": _("Supplier"), "fieldname": "supplier", "fieldtype": "Link","options": "Supplier", "width": 140},
 		]
 	)
 
@@ -267,7 +315,8 @@ def setup_ageing_columns(filters: Filters, range_columns: List):
 		f"0 - {filters['range1']}",
 		f"{cint(filters['range1']) + 1} - {cint(filters['range2'])}",
 		f"{cint(filters['range2']) + 1} - {cint(filters['range3'])}",
-		f"{cint(filters['range3']) + 1} - {_('Above')}",
+		f"{cint(filters['range3']) + 1} - {cint(filters['range4'])}",
+		f"{cint(filters['range4']) + 1} - {_('Above')}",
 	]
 	for i, label in enumerate(ranges):
 		fieldname = "range" + str(i + 1)
@@ -323,7 +372,7 @@ class FIFOSlots:
 		if not self.filters.get("show_warehouse_wise_stock"):
 			# (Item 1, WH 1), (Item 1, WH 2) => (Item 1)
 			self.item_details = self.__aggregate_details_by_item(self.item_details)
-
+		
 		return self.item_details
 
 	def __init_key_stores(self, row: Dict) -> Tuple:
@@ -492,16 +541,22 @@ class FIFOSlots:
 	def __get_item_query(self) -> str:
 		item_table = frappe.qb.DocType("Item")
 
+		# item = frappe.qb.from_("Item").leftJoin("Item Supplier", "Item.name","=","Item Supplier.parent").select(
+		# 	"name", "item_name", "description", "stock_uom", "brand", "item_group", "has_serial_no"
+		# )
 		item = frappe.qb.from_("Item").select(
 			"name", "item_name", "description", "stock_uom", "brand", "item_group", "has_serial_no"
 		)
 
 		if self.filters.get("item_code"):
 			item = item.where(item_table.item_code == self.filters.get("item_code"))
-
+			
 		if self.filters.get("brand"):
 			item = item.where(item_table.brand == self.filters.get("brand"))
-
+			
+		if self.filters.get("supplier"):
+			pass
+		
 		return item
 
 	def __get_warehouse_conditions(self, sle, sle_query) -> str:
