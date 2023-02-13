@@ -91,8 +91,8 @@ def format_report_data(filters: Filters, item_details: Dict, to_date: str) -> Li
 		row.extend(
 			[
 				flt(item_dict.get("total_qty"), precision),
-				average_age,
 				cost_and_sale[0].stock_value,
+				average_age,
 				range1,
 				range2,
 				range3,
@@ -257,8 +257,8 @@ def get_columns(filters: Filters) -> List[Dict]:
 	columns.extend(
 		[
 			{"label": _("Qty on Hand"), "fieldname": "qty", "fieldtype": "Float", "width": 140},
-			{"label": _("Average Age (D)"), "fieldname": "average_age", "fieldtype": "Float", "width": 140},
 			{"label": _("Cost"), "fieldname": "stock_value", "fieldtype": "Float", "width": 100},
+			{"label": _("Average Age (D)"), "fieldname": "average_age", "fieldtype": "Float", "width": 140},
 		]
 	)
 	columns.extend(range_columns)
