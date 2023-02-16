@@ -10,8 +10,9 @@ frappe.ui.form.on('Shelf Rental Agreement', {
 
 		let frm_date = frm.doc.from_date
 		var myDate = new Date(frm_date);
-		var firstDay = new Date(myDate.getFullYear(), myDate.getMonth(), 1);
-		let dt_from_time = new Date(firstDay).toLocaleDateString('en-CA');
+		var firstDay = new Date(myDate.getFullYear(), myDate.getMonth(), 2);
+		let dt_from_time = new Date(firstDay).toISOString().split('T')[0]
+
 
 		if (frm.doc.from_date > frm.doc.from_date){
 			frappe.throw("From date not greate than to date.")
@@ -23,8 +24,8 @@ frappe.ui.form.on('Shelf Rental Agreement', {
 
 		let to_date1 = frm.doc.to_date
 		var to_dt = new Date(to_date1);
-		var lastDay = new Date(to_dt.getFullYear(), to_dt.getMonth() + 1, 0);
-		let dt_to_date = new Date(lastDay).toLocaleDateString('en-CA');
+		var lastDay = new Date(to_dt.getFullYear(), to_dt.getMonth() + 1, 1);
+		let dt_to_date = new Date(lastDay).toISOString().split('T')[0]
 		
 		if (dt_to_date != to_date1){
 			frappe.throw("To date must be last day of the month")
@@ -45,12 +46,17 @@ frappe.ui.form.on('Shelf Rental Agreement', {
 				let lastDays = getLastDaysOfMonths(start, end);
 				lastDays.forEach((day) => {
 					
-					let dt_to_date = new Date(day).toLocaleDateString('en-CA');
-					total += frm.doc.amount
+					let dt_to_date = new Date(day).toISOString().split('T')[0]
+
+					if(frm.doc.to_date >= dt_to_date){
+						total += frm.doc.amount
 					
-					let row = frm.add_child('invoices', {
-						date: dt_to_date,
-					});
+						let row = frm.add_child('invoices', {
+							date: dt_to_date,
+						});
+
+					}
+					
 				});
 
 			}
@@ -61,7 +67,7 @@ frappe.ui.form.on('Shelf Rental Agreement', {
 
 				lastDaysqtr.forEach(day => {
 					
-					let dt_to_date = new Date(day).toLocaleDateString('en-CA');
+					let dt_to_date = new Date(day).toISOString().split('T')[0]
 					
 					if(frm.doc.to_date >= dt_to_date){
 						total += frm.doc.amount
@@ -77,7 +83,7 @@ frappe.ui.form.on('Shelf Rental Agreement', {
 				let lastDaysyr = getLastDaysOfYears(start, end);
 				lastDaysyr.forEach((day) => {
 					
-					let dt_to_date = new Date(day).toLocaleDateString('en-CA');
+					let dt_to_date = new Date(day).toISOString().split('T')[0]
 
 					if(frm.doc.to_date >= dt_to_date){
 						total += frm.doc.amount
@@ -101,7 +107,7 @@ frappe.ui.form.on('Shelf Rental Agreement', {
 
 function getLastDayOfMonth(year, month) {
     let date = new Date(year, month + 1, 1);
-    date.setDate(date.getDate() - 1);
+    date.setDate(date.getDate() - 0);
     return date;
 }
 

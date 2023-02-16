@@ -396,36 +396,45 @@ def hello_world():
     
 def generate_rebate_process():
     
-    # month_last_day = '2023-01-31'
-    # month_first_day = '2023-01-01'
+    # month_last_day = '2023-12-31'
+    # month_first_day = '2023-12-01'
+
     month_last_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
     month_first_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=month_last_day.day)
 
-    # print("----month_last_day--")
-    # print(month_last_day)
 
-    rebate_customer = frappe.db.sql(""" SELECT * FROM `tabRebate Process` where rebate_start_from <= %(date)s and enabled = 1""",
-                            {'date': datetime.date.today()}, as_dict=True)
+    rebate_customer = frappe.db.sql(""" SELECT * FROM `tabRebate Process` where rebate_start_from <= %(date)s and enabled = 1 and docstatus = 1 and status not in ('Completed')""",
+                                        {'date': datetime.date.today()}, as_dict=True)
     
     for cust in rebate_customer:
         # check rebate is already processed
         
         prev_rebate = already_process_rebate(cust.customer,month_last_day,cust.rebate_type,cust.company,cust.sales_rep)
-
+        net_sale = net_sale_in_period(cust.customer, month_first_day, month_last_day, cust.company, cust.sales_rep,cust.name)
+        
+        if flt(net_sale) == 0 or flt(net_sale) < cust.initial_target:
+            
+            update_voucher_no('No target achievement', month_last_day, cust.name, 0)
+            update_status_rebate(month_last_day,cust.name)
+            continue
+        
         if not prev_rebate:
+
             rebate_val = frappe.db.sql(""" SELECT brand,sum(rebate_amt*-1)rebate_amt FROM (
-                                                    SELECT inv.name,it.qty,it.rate,it.amount,it.brand,r.rebate_percentage,(it.base_amount*r.rebate_percentage/100)rebate_amt
-                                                    FROM `tabSales Invoice` inv, `tabSales Invoice Item` it, `tabRebate Definition` r where 
-                                                    inv.name = it.parent and it.brand = r.brand
-                                                    and inv.docstatus=1 and r.parent = %(rebate)s and it.item_code != 'REBATE' 
-                                                    and employee = %(employee)s and customer = %(customer)s and inv.company = %(company)s
-                                                    and posting_date between %(start_date)s and %(end_date)s)a1
-                                                    group by brand HAVING sum(rebate_amt) > 0""",
-                                                    {'employee': cust.sales_rep,'customer':cust.customer,'start_date':month_first_day,'end_date':month_last_day,'rebate':cust.name,'company':cust.company}, as_dict=True)
+                                            SELECT inv.name,it.qty,it.rate,it.amount,it.brand,r.rebate_percentage,(it.base_amount*r.rebate_percentage/100)rebate_amt
+                                            FROM `tabSales Invoice` inv, `tabSales Invoice Item` it, `tabRebate Definition` r where 
+                                            inv.name = it.parent and it.brand = r.brand
+                                            and inv.docstatus=1 and r.parent = %(rebate)s and it.item_code not in ('SHELF RENT', 'REBATE') 
+                                            and employee = %(employee)s and customer = %(customer)s and inv.company = %(company)s
+                                            and posting_date between %(start_date)s and %(end_date)s)a1
+                                            group by brand HAVING sum(rebate_amt) > 0""",
+                                            {'employee': cust.sales_rep,'customer':cust.customer,'start_date':month_first_day,'end_date':month_last_day,'rebate':cust.name,'company':cust.company}, as_dict=True)
             if rebate_val:
+                
+
                 si = frappe.new_doc("Sales Invoice")
                 si.naming_series = 'ACC-SINV-.YYYY.-'
-                si.docstatus = 1
+                si.docstatus = 0
                 si.customer = cust.customer
                 si.employee = cust.sales_rep
                 si.is_return = 1
@@ -457,13 +466,13 @@ def generate_rebate_process():
                                         "cost_center" :cost_c,
                                         "brand" :rebate.brand,
                                     })
-                net_sale = net_sale_in_period(cust.customer, month_first_day, month_last_day, cust.company, cust.sales_rep,cust.name)
+                
                 slab_val = frappe.db.sql(""" SELECT extra_percentage FROM `tabRebate Slab` where {0} between total_sale_from and total_sale_to 
-                                                    and parent = %(rebate)s """.format(net_sale),
+                                                    and parent = %(rebate)s AND extra_percentage > 0 """.format(net_sale),
                                                     {'rebate': cust.name}, as_dict=True)
                 
                 if slab_val:
-                    
+                    total_rebate_val += (net_sale*slab_val[0].extra_percentage/100)
                     si.append("items",{
                                         "item_code" : 'REBATE',
                                         "description" : 'Rebate for exceed slab period {0} and {1}. Total brand sale {2}'.format(month_first_day,month_last_day,net_sale),
@@ -481,6 +490,32 @@ def generate_rebate_process():
                                     })
                 si.save(ignore_permissions=True)
                 # si.submit()
+                
+                update_voucher_no(si.name, month_last_day, cust.name, total_rebate_val)
+                update_status_rebate(month_last_day,cust.name)
+
+def update_status_rebate(month_last_day, reabte_ref):
+    get_idx_qry = frappe.db.sql(""" SELECT idx from `tabRental Invoices` where parenttype = 'Rebate Process'
+                                    and parent = %(reabte_ref)s and date = %(month_last_day)s""",
+                                    {'month_last_day': month_last_day,'reabte_ref':reabte_ref}, as_dict=True)
+    act_idx = 0
+    if get_idx_qry:
+        act_idx = get_idx_qry[0].idx
+        if act_idx == 1:
+            update_start = frappe.db.sql(""" UPDATE `tabRebate Process` SET status = 'Running' where name = %(reabte_ref)s""",
+                                        {'reabte_ref': reabte_ref}, as_dict=True)
+
+        max_idx = get_max_idx(reabte_ref, 'Rebate Process')
+
+        if max_idx and max_idx == act_idx:
+            update_complete = frappe.db.sql(""" UPDATE `tabRebate Process` SET status = 'Completed' where name = %(reabte_ref)s""",
+                                        {'reabte_ref': reabte_ref}, as_dict=True)
+
+
+def update_voucher_no(voucher_no, month_last_day, reabte_ref, total_rebate_val):
+    update_inv = frappe.db.sql(""" UPDATE `tabRental Invoices` SET voucher_no = %(voucher_no)s,is_generated = 1,amount = %(total_rebate_val)s WHERE date = %(month_last_day)s and parent = %(reabte_ref)s and parenttype = 'Rebate Process' """,
+                                {'voucher_no': voucher_no,'total_rebate_val':total_rebate_val,'month_last_day':month_last_day,'reabte_ref':reabte_ref}, as_dict=True)
+    return update_inv
 
 def get_sales_person_by_rep(rep_id):
     sales_person = frappe.db.sql(""" SELECT name FROM `tabSales Person` where employee = %(employee)s and is_group = 0 """,
@@ -492,7 +527,7 @@ def get_sales_person_by_rep(rep_id):
 
 def already_process_rebate(customer,posting_date,rebate_type,company,employee):
     rebate_inv = frappe.db.sql("""SELECT name FROM `tabSales Invoice` where customer = %(customer)s and posting_date = %(posting_date)s 
-                                    and rebate_type = %(rebate_type)s and docstatus=1 and company = %(company)s AND employee = %(employee)s""",
+                                    and rebate_type = %(rebate_type)s and docstatus != 2 and company = %(company)s AND employee = %(employee)s""",
                                     {'customer': customer,'posting_date':posting_date,'rebate_type':rebate_type,'company':company,'employee':employee}, as_dict=True)
     if rebate_inv:
         return rebate_inv[0].name
@@ -518,13 +553,15 @@ def generate_shelf_rentals():
     last_month_last_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
     month_first_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=last_month_last_day.day)
 
-
+    last_month_last_day = '2024-01-31'
+    month_first_day = '2024-01-01'
+    
     shelf_rental_entries = frappe.db.sql("""SELECT a.name,a.company,a.currency,rent_type,description,from_date,to_date,a.amount,a.brand,a.sales_rep,a.customer,
                                             b.name as detl_name,is_generated,b.date,b.idx 
                                             FROM `tabShelf Rental Agreement` a, `tabRental Invoices` b
                                             where a.name = b.parent and b.date = %(date)s
                                             and a.docstatus=1 
-                                            and a.enabled=1 and a.to_date >= %(date)s
+                                            and a.enabled=1 and status not in ('Completed')
                                             and is_generated = 0 """,{'date': last_month_last_day}, as_dict=True)
 
     for entry in shelf_rental_entries:
@@ -571,9 +608,10 @@ def generate_shelf_rentals():
             si.save(ignore_permissions=True)
             update_invoice_genetrate(entry.name, entry.detl_name,si.name, entry.amount)
             update_shelf_status(entry.date, entry.from_date, entry.to_date, entry.detl_name,entry.name,entry.idx)
+            print(si.name)
 
 def update_invoice_genetrate(sr,detl_name, inv, amount):
-    update_inv = frappe.db.sql(""" UPDATE `tabRental Invoices` SET voucher_no = %(inv)s,is_generated = 1,amount = %(amount)s WHERE name = %(detl_name)s and parent = %(sr)s """,
+    update_inv = frappe.db.sql(""" UPDATE `tabRental Invoices` SET voucher_no = %(inv)s,is_generated = 1,amount = %(amount)s WHERE name = %(detl_name)s and parent = %(sr)s and parenttype = 'Shelf Rental Agreement'""",
                                 {'inv': inv,'detl_name':detl_name,'sr':sr,'amount':amount}, as_dict=True)
     return update_inv
 
@@ -582,14 +620,14 @@ def update_shelf_status(date, from_date,to_date,detl_name,name,idx):
     if idx == 1:
         update_start = frappe.db.sql(""" UPDATE `tabShelf Rental Agreement` SET status = 'Running' where name = %(name)s """,
                                 {'name': name}, as_dict=True)
-    max_idx = get_max_idx(name)
+    max_idx = get_max_idx(name, 'Shelf Rental Agreement')
     if max_idx == idx:
         update_complete = frappe.db.sql(""" UPDATE `tabShelf Rental Agreement` SET status = 'Completed' where name = %(name)s """,
                                 {'name': name}, as_dict=True)
 
-def get_max_idx(name):
-    max_id = frappe.db.sql(""" SELECT max(idx)idx FROM `tabRental Invoices` where parent = %(name)s """,
-                                    {'name': name}, as_dict=True)
+def get_max_idx(name, parenttype):
+    max_id = frappe.db.sql(""" SELECT max(idx)idx FROM `tabRental Invoices` where parent = %(name)s and parenttype = %(parenttype)s""",
+                                {'name': name, 'parenttype':parenttype}, as_dict=True)
     if max_id:
         return max_id[0].idx
     else:
@@ -622,5 +660,7 @@ def get_brand_sale(rebate, sales_rep,customer,company, month_first_day,month_las
         return brand_sale_val
     else:
         return
+
+# bench execute freeline.freeline.globalapi.generate_rebate_process
 
 # bench execute freeline.freeline.globalapi.generate_shelf_rentals

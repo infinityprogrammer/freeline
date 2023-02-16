@@ -13,16 +13,25 @@
   "customer_name",
   "sales_rep",
   "employee_name",
+  "rebate_duration",
+  "enabled",
   "column_break_3",
   "currency",
   "customer_group",
   "rebate_type",
   "rebate_start_from",
-  "enabled",
+  "rebate_end_date",
+  "initial_target",
+  "status",
   "section_break_6",
   "rebate_details",
   "section_break_8",
-  "slab_details"
+  "slab_details",
+  "section_break_20",
+  "generated_rebates",
+  "rebates",
+  "total_amount",
+  "amended_from"
  ],
  "fields": [
   {
@@ -103,7 +112,6 @@
    "read_only": 1
   },
   {
-   "description": "Date must be first date of month.",
    "fieldname": "rebate_start_from",
    "fieldtype": "Date",
    "in_list_view": 1,
@@ -118,15 +126,76 @@
    "reqd": 1
   },
   {
+   "allow_on_submit": 1,
    "default": "1",
    "fieldname": "enabled",
    "fieldtype": "Check",
    "label": "Enabled"
+  },
+  {
+   "default": "0",
+   "fieldname": "initial_target",
+   "fieldtype": "Currency",
+   "label": "Initial Target",
+   "options": "currency"
+  },
+  {
+   "default": "Monthly",
+   "fieldname": "rebate_duration",
+   "fieldtype": "Select",
+   "label": "Rebate Duration",
+   "options": "Monthly\nQuarterly"
+  },
+  {
+   "fieldname": "rebate_end_date",
+   "fieldtype": "Date",
+   "label": "Rebate End Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_20",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "generated_rebates",
+   "fieldtype": "Heading",
+   "label": "Generated Rebates"
+  },
+  {
+   "fieldname": "rebates",
+   "fieldtype": "Table",
+   "label": "Rebates",
+   "options": "Rental Invoices"
+  },
+  {
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "label": "Total Amount",
+   "options": "currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Rebate Process",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "default": "Not Started",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Status",
+   "options": "Not Started\nRunning\nCompleted",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2023-02-03 16:17:50.267096",
+ "modified": "2023-02-16 15:53:36.751976",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Rebate Process",
