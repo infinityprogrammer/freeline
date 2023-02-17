@@ -40,6 +40,11 @@ frappe.query_reports["Historic Valuation"] = {
 			"label": __("Brand"),
 			"fieldtype": "Link",
 			"options": "Brand",
+		},
+		{
+			"fieldname": "is_stock_item",
+			"label": __("Maintain Stock"),
+			"fieldtype": "Check",
 		}
 	]
 };

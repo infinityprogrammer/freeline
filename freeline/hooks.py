@@ -212,7 +212,10 @@ fixtures = [
     {"dt": "Custom Field", "filters": [
         [
             "name", "in", [
-                "Sales Order-picker_warehouse"
+                "Sales Order-picker_warehouse",
+                "Pick List-employee_driver_id",
+                "Pick List-employee_driver_name",
+                "Pick List Item-hand_picked_qty",
             ]
         ]
     ]},

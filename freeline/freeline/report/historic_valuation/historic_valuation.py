@@ -29,7 +29,9 @@ def get_data(filters):
 
 	if filters.get("brand"):
 		conditions += """ and item.brand = %(brand)s """
-	
+
+	if filters.get("is_stock_item"):
+		conditions += """ and item.is_stock_item = %(is_stock_item)s """
 
 	data = frappe.db.sql(
 		"""

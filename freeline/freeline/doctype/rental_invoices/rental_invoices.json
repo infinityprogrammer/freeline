@@ -41,14 +41,14 @@
    "default": "0",
    "fieldname": "is_generated",
    "fieldtype": "Check",
-   "hidden": 1,
-   "label": "Is Generated"
+   "label": "Is Generated",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-02-16 15:33:01.704230",
+ "modified": "2023-02-17 12:41:12.208587",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Rental Invoices",
