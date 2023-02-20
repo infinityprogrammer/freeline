@@ -410,8 +410,8 @@ def generate_rebate_process():
     month_last_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
     month_first_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=month_last_day.day)
     
-    month_last_day = parse('2023-03-31').date()
-    month_first_day = parse('2023-03-01').date()
+    # month_last_day = parse('2023-03-31').date()
+    # month_first_day = parse('2023-03-01').date()
     
     rebate_customer = frappe.db.sql(""" SELECT * FROM `tabRebate Process` where rebate_start_from <= %(date)s and enabled = 1 and docstatus = 1 and status not in ('Completed')""",
                                         {'date': datetime.date.today()}, as_dict=True)
@@ -591,7 +591,7 @@ def generate_shelf_rentals():
         if not prev_rent:
             si = frappe.new_doc("Sales Invoice")
             si.naming_series = 'ACC-SINV-.YYYY.-'
-            si.docstatus = 1
+            si.docstatus = 0
             si.customer = entry.customer
             si.employee = entry.sales_rep
             si.is_return = 1
@@ -628,7 +628,7 @@ def generate_shelf_rentals():
             si.save(ignore_permissions=True)
             update_invoice_genetrate(entry.name, entry.detl_name,si.name, entry.amount)
             update_shelf_status(entry.date, entry.from_date, entry.to_date, entry.detl_name,entry.name,entry.idx)
-            print(si.name)
+            # print(si.name)
 
 def update_invoice_genetrate(sr,detl_name, inv, amount):
     update_inv = frappe.db.sql(""" UPDATE `tabRental Invoices` SET voucher_no = %(inv)s,is_generated = 1,amount = %(amount)s WHERE name = %(detl_name)s and parent = %(sr)s and parenttype = 'Shelf Rental Agreement'""",
