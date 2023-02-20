@@ -216,6 +216,7 @@ fixtures = [
                 "Pick List-employee_driver_id",
                 "Pick List-employee_driver_name",
                 "Pick List Item-hand_picked_qty",
+                "Sales Invoice-rebate_duration",
             ]
         ]
     ]},

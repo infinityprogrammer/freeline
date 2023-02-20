@@ -5,6 +5,7 @@ from frappe.utils import getdate, now_datetime, nowdate, flt, cint, get_datetime
 from frappe import _
 import json
 import datetime
+from dateutil.parser import parse
 
 
 # Number Card APIs for Dashboard
@@ -393,29 +394,40 @@ def get_trade_price_list():
 def hello_world():
     text = "Results of the hello_world in hello.py module"
     return text
+
+def previous_quarter(ref):
+    if ref.month < 4:
+        return datetime.date(ref.year - 1, 12, 31)
+    elif ref.month < 7:
+        return datetime.date(ref.year, 3, 31)
+    elif ref.month < 10:
+        return datetime.date(ref.year, 6, 30)
+    return datetime.date(ref.year, 9, 30)
     
 def generate_rebate_process():
     
 
-    # month_last_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
-    # month_first_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=month_last_day.day)
+    month_last_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
+    month_first_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=month_last_day.day)
     
-
-    month_last_day = '2023-03-31'
-    month_first_day = '2023-03-01'
-
+    month_last_day = parse('2023-03-31').date()
+    month_first_day = parse('2023-03-01').date()
+    
     rebate_customer = frappe.db.sql(""" SELECT * FROM `tabRebate Process` where rebate_start_from <= %(date)s and enabled = 1 and docstatus = 1 and status not in ('Completed')""",
                                         {'date': datetime.date.today()}, as_dict=True)
     
     for cust in rebate_customer:
         # check rebate is already processed
         net_sale = 0.0
-        prev_rebate = already_process_rebate(cust.customer,month_last_day,cust.rebate_type,cust.company,cust.sales_rep)
+        prev_rebate = already_process_rebate(cust.customer,month_last_day,cust.rebate_type,cust.company,cust.sales_rep,cust.rebate_duration)
 
         if cust.rebate_duration == "Monthly":
             net_sale = net_sale_in_period(cust.customer, month_first_day, month_last_day, cust.company, cust.sales_rep,cust.name,'Monthly')
 
         if cust.rebate_duration == "Quarterly":
+            prevq = previous_quarter(month_last_day)
+            month_first_day = prevq+datetime.timedelta(days=1)
+
             net_sale = net_sale_in_period(cust.customer, month_first_day, month_last_day, cust.company, cust.sales_rep,cust.name, 'Quarterly')
 
         if flt(net_sale) == 0 or flt(net_sale) < cust.initial_target:
@@ -425,7 +437,7 @@ def generate_rebate_process():
             continue
         
         if not prev_rebate:
-
+            
             rebate_val = frappe.db.sql(""" SELECT brand,sum(rebate_amt*-1)rebate_amt FROM (
                                             SELECT inv.name,it.qty,it.rate,it.amount,it.brand,r.rebate_percentage,(it.base_amount*r.rebate_percentage/100)rebate_amt
                                             FROM `tabSales Invoice` inv, `tabSales Invoice Item` it, `tabRebate Definition` r,`tabRental Invoices` ri where 
@@ -452,6 +464,7 @@ def generate_rebate_process():
                 si.doctype = 'Sales Invoice'
                 si.disable_rounded_total = 1
                 si.rebate_type = cust.rebate_type
+                si.rebate_duration = cust.rebate_duration
 
                 cost_c = frappe.db.get_value('Company', cust.company, 'cost_center')
                 si.cost_center = cost_c
@@ -465,7 +478,7 @@ def generate_rebate_process():
                     total_rebate_val += rebate.rebate_amt*-1
                     si.append("items",{
                                         "item_code" : 'REBATE',
-                                        "description" : 'Brand : {0} - Period : {1} and {2} - Total Brand sale : {3} - Rebate Percentage : {4}'.format(rebate.brand,month_first_day,month_last_day,brand_obj[0].amount,brand_obj[0].rebate_percentage),
+                                        "description" : 'Brand : {0} - Period : {1} and {2} - Total Brand sale : {3} - Rebate Percentage : {4} - Duration : {5}'.format(rebate.brand,month_first_day,month_last_day,brand_obj[0].amount,brand_obj[0].rebate_percentage,cust.rebate_duration),
                                         "qty" : -1,
                                         "rate" : rebate.rebate_amt*-1,
                                         "amount" : rebate.rebate_amt,
@@ -496,7 +509,7 @@ def generate_rebate_process():
                                     })
                 si.save(ignore_permissions=True)
                 # si.submit()
-                
+                # print(f"{si.name} - {si.posting_date}")
                 update_voucher_no(si.name, month_last_day, cust.name, total_rebate_val)
                 update_status_rebate(month_last_day,cust.name)
 
@@ -531,10 +544,10 @@ def get_sales_person_by_rep(rep_id):
     else:
         return
 
-def already_process_rebate(customer,posting_date,rebate_type,company,employee):
+def already_process_rebate(customer,posting_date,rebate_type,company,employee, rebate_duration):
     rebate_inv = frappe.db.sql("""SELECT name FROM `tabSales Invoice` where customer = %(customer)s and posting_date = %(posting_date)s 
-                                    and rebate_type = %(rebate_type)s and docstatus != 2 and company = %(company)s AND employee = %(employee)s""",
-                                    {'customer': customer,'posting_date':posting_date,'rebate_type':rebate_type,'company':company,'employee':employee}, as_dict=True)
+                                    and rebate_type = %(rebate_type)s and docstatus != 2 and company = %(company)s AND employee = %(employee)s and rebate_duration = %(rebate_duration)s """,
+                                    {'customer': customer,'posting_date':posting_date,'rebate_type':rebate_type,'company':company,'employee':employee,'rebate_duration':rebate_duration}, as_dict=True)
     if rebate_inv:
         return rebate_inv[0].name
     else:
@@ -559,9 +572,10 @@ def generate_shelf_rentals():
     last_month_last_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
     month_first_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=last_month_last_day.day)
 
-    last_month_last_day = '2024-01-31'
-    month_first_day = '2024-01-01'
+    # last_month_last_day = '2024-01-31'
+    # month_first_day = '2024-01-01'
     
+
     shelf_rental_entries = frappe.db.sql("""SELECT a.name,a.company,a.currency,rent_type,description,from_date,to_date,a.amount,a.brand,a.sales_rep,a.customer,
                                             b.name as detl_name,is_generated,b.date,b.idx 
                                             FROM `tabShelf Rental Agreement` a, `tabRental Invoices` b
