@@ -29,6 +29,17 @@ def execute(filters: Filters = None) -> Tuple:
 	
 	return columns, data, None
 
+def get_carton_fact(item_code):
+	data = frappe.db.sql(
+		"""
+		SELECT ifnull(conversion_factor, 0)conversion_factor 
+		FROM `tabUOM Conversion Detail` where parent = %(item_code)s and uom = 'Carton' """,{'item_code':item_code},as_dict=1)
+	
+	if data:
+		return data[0].conversion_factor
+	else:
+		return
+
 
 def format_report_data(filters: Filters, item_details: Dict, to_date: str) -> List[Dict]:
 	"Returns ordered, formatted data with ranges."
@@ -52,12 +63,18 @@ def format_report_data(filters: Filters, item_details: Dict, to_date: str) -> Li
 		earliest_age = 0
 		latest_age = 0
 		range1, range2, range3,range4,above_range4 = 0,0,0,0,0
+		range1c = 0
 
 		if fifo_queue:
 			average_age = get_average_age(fifo_queue, to_date)
 			earliest_age = date_diff(to_date, fifo_queue[0][1])
 			latest_age = date_diff(to_date, fifo_queue[-1][1])
 			range1, range2, range3,range4,above_range4 = get_range_age(filters, fifo_queue, to_date, item_dict)
+			carton_fact = get_carton_fact(details.name)
+
+			if carton_fact:
+				range1c = carton_fact
+
 
 		
 		cost_and_sale = get_item_sale_info(details.name, filters)
@@ -93,6 +110,7 @@ def format_report_data(filters: Filters, item_details: Dict, to_date: str) -> Li
 				flt(item_dict.get("total_qty"), precision),
 				cost_and_sale[0].stock_value,
 				average_age,
+				range1c,
 				range1,
 				range2,
 				range3,
@@ -259,6 +277,7 @@ def get_columns(filters: Filters) -> List[Dict]:
 			{"label": _("Qty on Hand"), "fieldname": "qty", "fieldtype": "Float", "width": 140},
 			{"label": _("Cost"), "fieldname": "stock_value", "fieldtype": "Float", "width": 100},
 			{"label": _("Average Age (D)"), "fieldname": "average_age", "fieldtype": "Float", "width": 140},
+			{"label": _("Carton Factor"), "fieldname": "range1c", "fieldtype": "Float", "width": 140},
 		]
 	)
 	columns.extend(range_columns)
