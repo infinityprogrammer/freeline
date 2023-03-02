@@ -432,7 +432,7 @@ def generate_rebate_process():
 
         if flt(net_sale) == 0 or flt(net_sale) < cust.initial_target:
             
-            update_voucher_no('No target achievement', month_last_day, cust.name, 0)
+            update_voucher_no('No Target Achievement', month_last_day, cust.name, 0)
             update_status_rebate(month_last_day,cust.name)
             continue
         
@@ -451,7 +451,7 @@ def generate_rebate_process():
                 
 
                 si = frappe.new_doc("Sales Invoice")
-                si.naming_series = 'ACC-SINV-.YYYY.-'
+                si.naming_series = 'INV-RET-.YY.-.####.'
                 si.docstatus = 0
                 si.customer = cust.customer
                 si.employee = cust.sales_rep
@@ -590,7 +590,7 @@ def generate_shelf_rentals():
         
         if not prev_rent:
             si = frappe.new_doc("Sales Invoice")
-            si.naming_series = 'ACC-SINV-.YYYY.-'
+            si.naming_series = 'INV-RET-.YY.-.####.'
             si.docstatus = 0
             si.customer = entry.customer
             si.employee = entry.sales_rep
@@ -680,6 +680,27 @@ def get_brand_sale(rebate, sales_rep,customer,company, month_first_day,month_las
         return brand_sale_val
     else:
         return
+
+def get_customer_and_currency(company, employee, from_date, to_date):
+    
+    customer_and_currency = frappe.db.sql("""  SELECT distinct customer,customer_name
+                                        FROM `tabSales Invoice` where docstatus = 1 and status != 'Paid' and company = %(company)s
+                                        AND employee = %(employee)s AND posting_date between %(from_date)s and %(to_date)s
+                                        order by 1, 2 """,
+                                    {'employee': employee,'from_date':from_date,'to_date':to_date,'company':company}, as_dict=True)
+    return customer_and_currency
+
+def get_customer_statement_by_currency(company, employee, from_date, to_date, inv_currency, customer):
+    
+    customer_and_currency = frappe.db.sql(""" SELECT posting_date,name,customer,customer_name,employee,employee_name,
+                                                currency,grand_total,outstanding_amount,status,due_date 
+                                                FROM `tabSales Invoice` where docstatus = 1 and status != 'Paid'
+                                                and employee = %(employee)s and company = %(company)s
+                                                and outstanding_amount != 0 and customer = %(customer)s
+                                                AND posting_date between %(from_date)s and %(to_date)s and currency = %(inv_currency)s """,
+                                    {'employee': employee,'from_date':from_date,'to_date':to_date,'company':company,'inv_currency':inv_currency,'customer':customer}, as_dict=True)
+    return customer_and_currency
+
 
 # bench execute freeline.freeline.globalapi.generate_rebate_process
 
