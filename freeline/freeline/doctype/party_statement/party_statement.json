@@ -25,6 +25,8 @@
   "section_break_12",
   "get_ageing",
   "ageing_details",
+  "get_ageing_iqd",
+  "ageing_details_iqd",
   "include_ageing",
   "include_statement"
  ],
@@ -103,13 +105,13 @@
   {
    "fieldname": "ageing_details",
    "fieldtype": "Table",
-   "label": "Ageing Details",
+   "label": "Ageing Details USD",
    "options": "Ageing Details"
   },
   {
    "fieldname": "get_ageing",
    "fieldtype": "Button",
-   "label": "Get Ageing"
+   "label": "Get Ageing USD"
   },
   {
    "default": "SOA/.employee./.##",
@@ -151,11 +153,22 @@
    "fieldtype": "Data",
    "label": "Customer Name",
    "read_only": 1
+  },
+  {
+   "fieldname": "ageing_details_iqd",
+   "fieldtype": "Table",
+   "label": "Ageing Details IQD",
+   "options": "Ageing Details IQD"
+  },
+  {
+   "fieldname": "get_ageing_iqd",
+   "fieldtype": "Button",
+   "label": "Get Ageing IQD"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2022-12-11 15:32:03.902423",
+ "modified": "2023-03-06 14:42:54.823823",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Party Statement",

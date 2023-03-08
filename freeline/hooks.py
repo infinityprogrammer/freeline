@@ -40,6 +40,7 @@ doctype_js = {
     "Sales Order" : "public/js/sales_order.js",
     "Pick List" : "public/js/pick_list.js",
     "Delivery Note" : "public/js/delivery_note.js",
+	"Stock Reconciliation" : "public/js/stock_reconciliation.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -217,6 +218,7 @@ fixtures = [
                 "Pick List-employee_driver_name",
                 "Pick List Item-hand_picked_qty",
                 "Sales Invoice-rebate_duration",
+                "Stock Reconciliation-warehouse",
             ]
         ]
     ]},

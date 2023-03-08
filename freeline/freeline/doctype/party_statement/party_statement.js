@@ -118,6 +118,10 @@ frappe.ui.form.on('Party Statement', {
 			frm.call({
 				method: "get_party_ageing",
 				doc:frm.doc,
+				args: {
+					doc: frm.doc,
+					currency_val: 'USD'
+				},
 				freeze: true,
 				freeze_message: "Fetching Ageing...",
 				callback: function(r) {
@@ -147,12 +151,17 @@ frappe.ui.form.on('Party Statement', {
 			});
 
 		}
+
 		if (is_cust_statement == 1){
 
 			frm.clear_table("ageing_details");
 			frm.call({
 				method: "get_customer_ageing",
 				doc:frm.doc,
+				args: {
+					doc: frm.doc,
+					currency_val: 'USD',
+				},
 				freeze: true,
 				freeze_message: "Fetching Ageing...",
 				callback: function(r) {
@@ -178,6 +187,91 @@ frappe.ui.form.on('Party Statement', {
 						frappe.msgprint(__('No data found for the applier filters'));
 					}
 					frm.refresh_field('ageing_details');
+				}
+			});
+
+		}
+    	
+    },
+
+	get_ageing_iqd: function(frm){
+    	// first try to test by uncommenting 
+		let is_cust_statement = frm.doc.is_customer_statement;
+		if (is_cust_statement == 0){
+
+			frm.clear_table("ageing_details_iqd");
+			frm.call({
+				method: "get_party_ageing",
+				doc:frm.doc,
+				args: {
+					doc: frm.doc,
+					currency_val: 'IQD'
+				},
+				freeze: true,
+				freeze_message: "Fetching Ageing...",
+				callback: function(r) {
+					if(r.message){
+						console.log(r)
+						frm.clear_table("ageing_details_iqd");
+						let invs = r.message
+						for(let i=0; i < invs.length; i++) {
+							let row = frm.add_child('ageing_details_iqd', {
+								party_type: "Customer",
+								party: invs[i].party,
+								party_name: invs[i].party_name,
+								balance: invs[i].net_balance,
+								opening: invs[i].opening,
+								age_30: invs[i].first,
+								age_60: invs[i].second,
+								age_90: invs[i].third,
+								above_120: invs[i].ext,
+							});
+						}
+						//frappe.msgprint(__('Data present'));
+					}else{
+						frappe.msgprint(__('No data found for the applier filters'));
+					}
+					frm.refresh_field('ageing_details_iqd');
+				}
+			});
+
+		}
+
+		if (is_cust_statement == 1){
+
+			frm.clear_table("ageing_details_iqd");
+			frm.call({
+				method: "get_customer_ageing",
+				doc:frm.doc,
+				args: {
+					doc: frm.doc,
+					currency_val: 'IQD'
+				},
+				freeze: true,
+				freeze_message: "Fetching Ageing...",
+				callback: function(r) {
+					if(r.message){
+						console.log(r)
+						frm.clear_table("ageing_details_iqd");
+						let invs = r.message
+						for(let i=0; i < invs.length; i++) {
+							let row = frm.add_child('ageing_details_iqd', {
+								party_type: "Customer",
+								party: invs[i].party,
+								party_name: invs[i].party_name,
+								balance: invs[i].net_balance,
+								opening: invs[i].opening,
+								age_30: invs[i].first,
+								age_60: invs[i].second,
+								age_90: invs[i].third,
+								above_120: invs[i].ext,
+							});
+						}
+						//frappe.msgprint(__('Data present'));
+					}else{
+						frappe.msgprint(__('No data found for the applier filters'));
+					}
+					frm.refresh_field('ageing_details_iqd');
 				}
 			});
 

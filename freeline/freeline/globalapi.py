@@ -439,7 +439,7 @@ def generate_rebate_process():
         if not prev_rebate:
             
             rebate_val = frappe.db.sql(""" SELECT brand,sum(rebate_amt*-1)rebate_amt FROM (
-                                            SELECT inv.name,it.qty,it.rate,it.amount,it.brand,r.rebate_percentage,(it.base_amount*r.rebate_percentage/100)rebate_amt
+                                            SELECT inv.name,it.qty,it.rate,it.base_net_amount,it.brand,r.rebate_percentage,(it.base_net_amount*r.rebate_percentage/100)rebate_amt
                                             FROM `tabSales Invoice` inv, `tabSales Invoice Item` it, `tabRebate Definition` r,`tabRental Invoices` ri where 
                                             inv.name = it.parent and it.brand = r.brand and r.parent = ri.parent
                                             and inv.docstatus=1 and r.parent = %(rebate)s and it.item_code not in ('SHELF RENT', 'REBATE') 
@@ -554,7 +554,7 @@ def already_process_rebate(customer,posting_date,rebate_type,company,employee, r
         return
 
 def net_sale_in_period(customer,from_date,to_date,company,employee,rebate, reb_period):
-    net_sale = frappe.db.sql("""SELECT sum(inv.base_grand_total)base_grand_total FROM `tabSales Invoice` inv, `tabSales Invoice Item` it 
+    net_sale = frappe.db.sql("""SELECT sum(it.base_net_amount)base_grand_total FROM `tabSales Invoice` inv, `tabSales Invoice Item` it 
                                 where inv.name = it.parent
                                 and inv.company = %(company)s and inv.customer = %(customer)s
                                 and inv.posting_date between %(from_date)s and %(to_date)s and inv.employee = %(employee)s and inv.docstatus=1

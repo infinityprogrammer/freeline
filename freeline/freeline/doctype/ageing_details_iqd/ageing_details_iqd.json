@@ -1,0 +1,88 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-03-06 14:40:28.341055",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "party_type",
+  "party",
+  "party_name",
+  "age_30",
+  "age_60",
+  "age_90",
+  "above_120",
+  "balance",
+  "opening"
+ ],
+ "fields": [
+  {
+   "fieldname": "party_type",
+   "fieldtype": "Link",
+   "label": "Party Type",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "party",
+   "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
+   "label": "Party",
+   "options": "party_type"
+  },
+  {
+   "fetch_from": "party.customer_name",
+   "fieldname": "party_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Party Name"
+  },
+  {
+   "fieldname": "age_30",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Age 30"
+  },
+  {
+   "fieldname": "age_60",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Age 60"
+  },
+  {
+   "fieldname": "age_90",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Age 90"
+  },
+  {
+   "fieldname": "above_120",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Above 90"
+  },
+  {
+   "fieldname": "balance",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Balance"
+  },
+  {
+   "fieldname": "opening",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Opening"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-03-06 14:40:28.341055",
+ "modified_by": "Administrator",
+ "module": "Freeline",
+ "name": "Ageing Details IQD",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}
