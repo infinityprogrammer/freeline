@@ -451,7 +451,7 @@ def generate_rebate_process():
                 
 
                 si = frappe.new_doc("Sales Invoice")
-                si.naming_series = 'INV-RET-.YY.-.####.'
+                si.naming_series = 'CRN-.site_id.-.YY.-.####.'
                 si.docstatus = 0
                 si.customer = cust.customer
                 si.employee = cust.sales_rep
@@ -590,7 +590,7 @@ def generate_shelf_rentals():
         
         if not prev_rent:
             si = frappe.new_doc("Sales Invoice")
-            si.naming_series = 'INV-RET-.YY.-.####.'
+            si.naming_series = 'CRN-.site_id.-.YY.-.####.'
             si.docstatus = 0
             si.customer = entry.customer
             si.employee = entry.sales_rep
@@ -701,6 +701,11 @@ def get_customer_statement_by_currency(company, employee, from_date, to_date, in
                                     {'employee': employee,'from_date':from_date,'to_date':to_date,'company':company,'inv_currency':inv_currency,'customer':customer}, as_dict=True)
     return customer_and_currency
 
+def get_uom_qty_sum(doc_name):
+    
+    uom_sum = frappe.db.sql(""" SELECT uom,sum(qty)qty FROM `tabDelivery Note Item` where parent = %(doc_name)s group by uom """,
+                                    {'doc_name': doc_name}, as_dict=True)
+    return uom_sum
 
 # bench execute freeline.freeline.globalapi.generate_rebate_process
 

@@ -240,5 +240,6 @@ jenv = {
         "get_gross_total_amt_order:freeline.freeline.globalapi.get_gross_total_amt_order",
         "get_customer_and_currency:freeline.freeline.globalapi.get_customer_and_currency",
         "get_customer_statement_by_currency:freeline.freeline.globalapi.get_customer_statement_by_currency",
+		"get_uom_qty_sum:freeline.freeline.globalapi.get_uom_qty_sum",
     ]
 }

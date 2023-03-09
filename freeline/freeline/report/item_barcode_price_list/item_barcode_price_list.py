@@ -98,7 +98,7 @@ def get_data(filters):
 		(SELECT group_concat(supplier_part_no) FROM `tabItem Supplier` s where s.parent = item.name)supplier_part_no,
 		(SELECT parent_item_group FROM `tabItem Group` where name = item.item_group)item_group_parent,
 		(SELECT price_list_rate FROM `tabItem Price` p where p.item_code = item.item_code 
-		and p.uom =  (SELECT group_concat(uom) FROM `tabUOM Conversion Detail` um where um.parent = item.name order by conversion_factor desc limit 1)
+		and p.uom =  (SELECT uom FROM `tabUOM Conversion Detail` um where um.parent = item.name order by conversion_factor desc limit 1)
 		and price_list = %(price_list)s)price_list_rate
 		FROM `tabItem` item where item.disabled = 0 {0}""".format(conditions),filters,as_dict=1)
 

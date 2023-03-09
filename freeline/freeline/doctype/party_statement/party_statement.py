@@ -71,8 +71,9 @@ class PartyStatement(Document):
 		age_entries = frappe.db.sql("""SELECT party_type,party,inv.currency,sum(debit_in_account_currency - credit_in_account_currency)net_balance
 									FROM `tabGL Entry` gl LEFT JOIN `tabSales Invoice` inv ON inv.name = gl.against_voucher
 									where inv.employee = %(employee)s and inv.currency = %(currency_val)s and party_type = 'Customer' and gl.is_cancelled=0 and gl.company = %(company)s and gl.posting_date between %(from_date)s and %(to_date)s group by party_type,party 
-         							having sum(debit_in_account_currency - credit_in_account_currency) != 0""",
+         							having round(sum(debit_in_account_currency - credit_in_account_currency),1) != 0""",
                                   {'employee': self.get("employee"),'from_date':self.get("from_date"),'to_date':self.get("to_date"),'company':self.get("company"),'currency_val':currency_val}, as_dict=True)
+		
 		for age_ent in age_entries:
 			age_ent['opening'] = "0"
 			opening_amt = self.get_opening_balance(age_ent.party, age_ent.currency)
