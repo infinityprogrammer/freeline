@@ -18,6 +18,7 @@
   "section_break_5",
   "currency",
   "sales_rep",
+  "team",
   "amended_from",
   "duration",
   "brand",
@@ -165,12 +166,18 @@
    "fieldtype": "Currency",
    "label": "Total Amount",
    "read_only": 1
+  },
+  {
+   "fieldname": "team",
+   "fieldtype": "Select",
+   "label": "Team",
+   "options": "Food\nNon Food\nCosmetics"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-02-20 12:04:54.313359",
+ "modified": "2023-03-10 11:34:47.248391",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Shelf Rental Agreement",

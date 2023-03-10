@@ -95,6 +95,7 @@ def _execute(filters=None, additional_table_columns=None, additional_query_colum
 			"barcode": d.barcode,
 			"parent_item_group1": d.parent_item_group1,
 			"parent_item_group2": d.parent_item_group2,
+			"collation": d.collation,
 		}
 
 		if additional_query_columns:
@@ -476,6 +477,12 @@ def get_columns(additional_table_columns, filters):
 			"width": 100,
 		},
 		{
+			"label": _("Collation"),
+			"fieldname": "collation",
+			"fieldtype": "Data",
+			"width": 100,
+		},
+		{
 			"label": _("Batch No"),
 			"fieldname": "batch_no",
 			"fieldtype": "Data",
@@ -578,6 +585,7 @@ def get_items(filters, additional_query_columns):
 			`tabSales Invoice`.territory, `tabSales Invoice`.company, `tabSales Invoice`.base_net_total,
 			`tabSales Invoice Item`.item_code, `tabSales Invoice Item`.description,
    			(SELECT brand FROM `tabItem` where `tabItem`.name = `tabSales Invoice Item`.item_code) as brand,
+			(SELECT collation FROM `tabItem` where `tabItem`.name = `tabSales Invoice Item`.item_code) as collation,
 			(SELECT ((`tabSales Invoice Item`.`amount`/ `tabSales Invoice`.`total`))* `tabSales Invoice`.discount_amount ) as invoice_discount_amount,
 			(select GROUP_CONCAT(sales_person) from `tabSales Team` where `tabSales Team`.parent = `tabSales Invoice`.name) as sales_person,
 			(SELECT parent FROM `tabSales Person` sp where 
