@@ -657,7 +657,7 @@ def get_max_idx(name, parenttype):
 
 def already_process_shelf_rental(company, customer, sales_rep, month_last_day, brand, shelf_rent_ref):
     rental_inv = frappe.db.sql("""SELECT name FROM `tabSales Invoice` where customer = %(customer)s and posting_date = %(posting_date)s 
-                                    and shelf_rent_ref = %(shelf_rent_ref)s and docstatus=1 and company = %(company)s AND employee = %(employee)s""",
+                                    and shelf_rent_ref = %(shelf_rent_ref)s and docstatus != 2 and company = %(company)s AND employee = %(employee)s""",
                                     {'customer': customer,'posting_date':month_last_day,'shelf_rent_ref':shelf_rent_ref,'company':company,'employee':sales_rep}, as_dict=True)
     if rental_inv:
         return rental_inv[0].name
