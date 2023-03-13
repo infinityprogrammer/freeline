@@ -26,6 +26,8 @@ def get_columns():
 		_("Barcode") + ":Data:100",
 		_("Supplier Ref") + ":Data:100",
 		_("Qty in Carton") + ":Float:100",
+		_("Highest UOM") + ":Link/UOM:130",
+		_("Highest UOM Factor") + ":Float:140",
 	]
 
 	return columns
@@ -57,7 +59,9 @@ def get_total_stock(filters):
 				(SELECT GROUP_CONCAT(barcode) FROM `tabItem Barcode` where `tabItem Barcode`.parent = item.name) as barcode,
 				(select GROUP_CONCAT(supplier_part_no) from `tabItem Supplier` where `tabItem Supplier`.parent = item.name) as supplier_no,
 				-- (SELECT conversion_factor FROM `tabUOM Conversion Detail` uf where uf.parent = item.item_code and uf.uom = 'Carton') as carton_factor,
-    			((sum(ledger.actual_qty))/ (SELECT conversion_factor FROM `tabUOM Conversion Detail` uf where uf.parent = item.item_code and uf.uom = 'Carton')) as qty_in_carton
+    			((sum(ledger.actual_qty))/ (SELECT conversion_factor FROM `tabUOM Conversion Detail` uf where uf.parent = item.item_code and uf.uom = 'Carton')) as qty_in_carton,
+				(SELECT uom FROM `tabUOM Conversion Detail` um where um.parent = item.item_code order by conversion_factor desc limit 1)highest_uom,
+				(SELECT conversion_factor FROM `tabUOM Conversion Detail` um where um.parent = item.item_code order by conversion_factor desc limit 1)highest_uom_factor
 			FROM
 				`tabBin` AS ledger
 			INNER JOIN `tabItem` AS item

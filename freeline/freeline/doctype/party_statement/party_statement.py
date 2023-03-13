@@ -68,7 +68,7 @@ class PartyStatement(Document):
 	@frappe.whitelist()
 	def get_party_ageing(self, doc, currency_val):
 		
-		age_entries = frappe.db.sql("""SELECT party_type,party,inv.currency,sum(debit_in_account_currency - credit_in_account_currency)net_balance
+		age_entries = frappe.db.sql("""SELECT party_type,party,inv.currency,round(sum(debit_in_account_currency - credit_in_account_currency),1)net_balance
 									FROM `tabGL Entry` gl LEFT JOIN `tabSales Invoice` inv ON inv.name = gl.against_voucher
 									where inv.employee = %(employee)s and inv.currency = %(currency_val)s and party_type = 'Customer' and gl.is_cancelled=0 and gl.company = %(company)s and gl.posting_date between %(from_date)s and %(to_date)s group by party_type,party 
          							having round(sum(debit_in_account_currency - credit_in_account_currency),1) != 0""",
