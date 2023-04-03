@@ -27,7 +27,7 @@ def get_data(filters):
 		and payment_type = 'Receive' and party_type = 'Customer' and docstatus = 1 and company = %(company)s
 		union all
 		SELECT 'Sales Invoice' voucher_type,name as voucher_no,company,posting_date,customer,customer_name,employee,employee_name,status,outstanding_amount 
-		FROM `tabSales Invoice` where outstanding_amount != 0 and docstatus = 1 and company = %(company)s)a1 where 1=1 {0}""".format(conditions),filters,as_dict=1)
+		FROM `tabSales Invoice` where round(outstanding_amount,2) != 0 and docstatus = 1 and company = %(company)s)a1 where 1=1 {0}""".format(conditions),filters,as_dict=1)
 
 	return data
 

@@ -57,7 +57,7 @@ def get_hiuom_factor(item_code):
 	if data:
 		return data[0].conversion_factor
 	else:
-		return
+		return 1
 
 
 def format_report_data(filters: Filters, item_details: Dict, to_date: str) -> List[Dict]:
@@ -85,7 +85,7 @@ def format_report_data(filters: Filters, item_details: Dict, to_date: str) -> Li
 		range1c = 0
 
 		HiUOM = ""
-		HiUOM_Fact = 0
+		HiUOM_Fact = 1
 
 		if fifo_queue:
 			average_age = get_average_age(fifo_queue, to_date)

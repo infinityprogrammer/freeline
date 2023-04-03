@@ -707,6 +707,12 @@ def get_uom_qty_sum(doc_name):
                                     {'doc_name': doc_name}, as_dict=True)
     return uom_sum
 
+def get_uom_qty_sum_inv(doc_name):
+    
+    uom_sum = frappe.db.sql(""" SELECT uom,sum(qty)qty FROM `tabSales Invoice Item` where parent = %(doc_name)s group by uom """,
+                                    {'doc_name': doc_name}, as_dict=True)
+    return uom_sum
+
 # bench execute freeline.freeline.globalapi.generate_rebate_process
 
 # bench execute freeline.freeline.globalapi.generate_shelf_rentals
