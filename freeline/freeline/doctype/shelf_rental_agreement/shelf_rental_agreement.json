@@ -10,6 +10,7 @@
   "naming_series",
   "company",
   "customer",
+  "customer_name",
   "from_date",
   "to_date",
   "rent_type",
@@ -172,12 +173,19 @@
    "fieldtype": "Select",
    "label": "Team",
    "options": "Food\nNon Food\nCosmetics"
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-03-10 11:34:47.248391",
+ "modified": "2023-04-04 13:31:07.257395",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Shelf Rental Agreement",
