@@ -103,7 +103,7 @@ def format_report_data(filters: Filters, item_details: Dict, to_date: str) -> Li
 		
 		cost_and_sale = get_item_sale_info(details.name, filters)
 
-		row = [details.name, details.item_name, details.description, details.item_group, details.brand]
+		row = [details.name, details.item_name, details.description,cost_and_sale[0].barcode, details.item_group, details.brand]
 
 		if filters.get("show_warehouse_wise_stock"):
 			row.append(details.warehouse)
@@ -156,7 +156,8 @@ def format_report_data(filters: Filters, item_details: Dict, to_date: str) -> Li
 				usage_rate,
 				stock_cover,
 				turnover_rate,
-				supplier_code
+				supplier_code,
+				cost_and_sale[0].supplier_no
 			]
 		)
 
@@ -213,7 +214,10 @@ def get_item_sale_info(item_code_name, filters):
 								--
 								ifnull((SELECT sum(actual_qty *-1) FROM `tabStock Ledger Entry` sle where sle.voucher_type in ('Sales Invoice','Delivery Note')
 								and is_cancelled = 0 and sle.item_code = item.name and company = %(company)s
-								and datediff(curdate(),sle.posting_date) between 151 and 180), 0)m6
+								and datediff(curdate(),sle.posting_date) between 151 and 180), 0)m6,
+								--
+								(SELECT GROUP_CONCAT(barcode) FROM `tabItem Barcode` where `tabItem Barcode`.parent = item.name) as barcode,
+								(select GROUP_CONCAT(supplier_part_no) from `tabItem Supplier` where `tabItem Supplier`.parent = item.name) as supplier_no
 								--
 								from `tabItem` item where item.name = %(item_code_name)s """,filters,as_dict=True)
 	return sale_detl
@@ -270,6 +274,7 @@ def get_columns(filters: Filters) -> List[Dict]:
 		},
 		{"label": _("Item Name"), "fieldname": "item_name", "fieldtype": "Data", "width": 100},
 		{"label": _("Description"), "fieldname": "description", "fieldtype": "Data", "width": 200},
+		{"label": _("Barcode"), "fieldname": "barcode", "fieldtype": "Data", "width": 160},
 		{
 			"label": _("Item Group"),
 			"fieldname": "item_group",
@@ -325,6 +330,7 @@ def get_columns(filters: Filters) -> List[Dict]:
 			{"label": _("Stock Cover (M)"), "fieldname": "stock_cover", "fieldtype": "Float", "width": 140},
 			{"label": _("Turnover Rate"), "fieldname": "turnover_rate", "fieldtype": "Float", "width": 140},
 			{"label": _("Supplier"), "fieldname": "supplier", "fieldtype": "Link","options": "Supplier", "width": 140},
+			{"label": _("Supplier Part"), "fieldname": "supplier_no", "fieldtype": "Data", "width": 140},
 		]
 	)
 

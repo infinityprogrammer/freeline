@@ -96,6 +96,8 @@ def _execute(filters=None, additional_table_columns=None, additional_query_colum
 			"parent_item_group1": d.parent_item_group1,
 			"parent_item_group2": d.parent_item_group2,
 			"collation": d.collation,
+			"inv_currency": d.inv_currency,
+			"conversion_rate": d.conversion_rate,
 		}
 
 		if additional_query_columns:
@@ -458,6 +460,19 @@ def get_columns(additional_table_columns, filters):
 			"width": 100,
 		},
 		{
+			"label": _("Invoice Currency"),
+			"fieldname": "inv_currency",
+			"fieldtype": "Link",
+			"options": "Currency",
+			"width": 100,
+		},
+		{
+			"label": _("Exchange Rate"),
+			"fieldname": "conversion_rate",
+			"fieldtype": "Float",
+			"width": 100,
+		},
+		{
 			"label": _("Invoice Discount Amount"),
 			"fieldname": "invoice_discount_amount",
 			"fieldtype": "Currency",
@@ -580,7 +595,7 @@ def get_items(filters, additional_query_columns):
 			`tabSales Invoice Item`.name, `tabSales Invoice Item`.parent,`tabSales Invoice`.employee_name,`tabSales Invoice`.employee,(`tabSales Invoice Item`.discount_amount*`tabSales Invoice Item`.qty)discount_amount,
 			`tabSales Invoice`.posting_date, `tabSales Invoice`.debit_to,
 			`tabSales Invoice`.unrealized_profit_loss_account,
-			`tabSales Invoice`.is_internal_customer,
+			`tabSales Invoice`.is_internal_customer,`tabSales Invoice`.currency as inv_currency,`tabSales Invoice`.conversion_rate,
 			`tabSales Invoice`.project, `tabSales Invoice`.customer, `tabSales Invoice`.remarks,
 			`tabSales Invoice`.territory, `tabSales Invoice`.company, `tabSales Invoice`.base_net_total,
 			`tabSales Invoice Item`.item_code, `tabSales Invoice Item`.description,

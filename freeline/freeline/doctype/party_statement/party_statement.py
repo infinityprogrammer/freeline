@@ -207,3 +207,18 @@ def get_emp_null_opening(company, customer, from_date, s_currency):
           								AND gl.posting_date < %(from_date)s and gl.company = %(company)s and (employee is null or employee ='')""",
                                   	{'customer':customer,'from_date':from_date,'company':company,'s_currency':s_currency}, as_dict=True)
 	return opening_balance;
+
+@frappe.whitelist()
+def get_unallocated_payment(company, customer, employee, s_currency):
+	unallocated_amount = frappe.db.sql(""" SELECT ifnull(unallocated_amount, 0)unallocated_amount FROM `tabPayment Entry` where paid_from_account_currency = %(s_currency)s 
+										AND unallocated_amount > 0 AND employee = %(employee)s AND party_type = 'Customer'
+										and party = %(customer)s and docstatus=1 and company = %(company)s """,
+                                  	{'customer':customer,'company':company,'s_currency':s_currency,'employee':employee}, as_dict=True)
+	
+	if not unallocated_amount:
+		zero_amt = {"unallocated_amount": 0.00 }
+		unallocated_amount.append(zero_amt)
+		
+		return unallocated_amount
+	
+	return unallocated_amount;
