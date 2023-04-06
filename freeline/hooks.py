@@ -243,5 +243,6 @@ jenv = {
 		"get_uom_qty_sum:freeline.freeline.globalapi.get_uom_qty_sum",
 		"get_uom_qty_sum_inv:freeline.freeline.globalapi.get_uom_qty_sum_inv",
         "get_unallocated_payment:freeline.freeline.doctype.party_statement.party_statement.get_unallocated_payment",
+        "get_unallocated_payment_not_in_ageing:freeline.freeline.doctype.party_statement.party_statement.get_unallocated_payment_not_in_ageing",
     ]
 }

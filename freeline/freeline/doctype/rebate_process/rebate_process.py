@@ -16,7 +16,7 @@ class RebateProcess(Document):
 	
 	def validate(self):
 		exist = frappe.db.sql(""" SELECT name FROM `tabRebate Process` where customer = %(customer)s and rebate_type = %(rebate_type)s and enabled = 1
-									and name != %(name)s and sales_rep = %(sales_rep)s and rebate_duration = %(rebate_duration)s and status not in ('Completed')""",
+									and name != %(name)s and sales_rep = %(sales_rep)s and rebate_duration = %(rebate_duration)s and status not in ('Completed') AND docstatus = 1""",
 								{'customer': self.customer, 'rebate_type': self.rebate_type,'name':self.name,'sales_rep':self.sales_rep,'rebate_duration':self.rebate_duration}, as_dict=True)
 
 		if not self.rebate_details:

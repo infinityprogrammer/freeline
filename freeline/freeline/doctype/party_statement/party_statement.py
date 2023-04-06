@@ -68,7 +68,7 @@ class PartyStatement(Document):
 	@frappe.whitelist()
 	def get_party_ageing(self, doc, currency_val):
 		
-		age_entries = frappe.db.sql("""SELECT party_type,party,inv.currency,round(sum(debit_in_account_currency - credit_in_account_currency),1)net_balance
+		age_entries = frappe.db.sql("""SELECT party_type,party,inv.currency,sum(debit_in_account_currency - credit_in_account_currency)net_balance
 									FROM `tabGL Entry` gl LEFT JOIN `tabSales Invoice` inv ON inv.name = gl.against_voucher
 									where inv.employee = %(employee)s and inv.currency = %(currency_val)s and party_type = 'Customer' and gl.is_cancelled=0 and gl.company = %(company)s and gl.posting_date between %(from_date)s and %(to_date)s group by party_type,party 
          							having round(sum(debit_in_account_currency - credit_in_account_currency),1) != 0""",
@@ -211,7 +211,7 @@ def get_emp_null_opening(company, customer, from_date, s_currency):
 @frappe.whitelist()
 def get_unallocated_payment(company, customer, employee, s_currency):
 	unallocated_amount = frappe.db.sql(""" SELECT ifnull(unallocated_amount, 0)unallocated_amount FROM `tabPayment Entry` where paid_from_account_currency = %(s_currency)s 
-										AND unallocated_amount > 0 AND employee = %(employee)s AND party_type = 'Customer'
+										AND unallocated_amount > 0 AND employee_id = %(employee)s AND party_type = 'Customer'
 										and party = %(customer)s and docstatus=1 and company = %(company)s """,
                                   	{'customer':customer,'company':company,'s_currency':s_currency,'employee':employee}, as_dict=True)
 	
@@ -221,4 +221,14 @@ def get_unallocated_payment(company, customer, employee, s_currency):
 		
 		return unallocated_amount
 	
+	return unallocated_amount;
+
+@frappe.whitelist()
+def get_unallocated_payment_not_in_ageing(company, employee, s_currency, parent):
+	unallocated_amount = frappe.db.sql(""" SELECT party,sum(ifnull(unallocated_amount, 0))unallocated_amount FROM `tabPayment Entry` where paid_from_account_currency = %(s_currency)s
+											AND unallocated_amount > 0 AND employee_id = %(employee)s AND party_type = 'Customer'
+											and docstatus=1 and company = %(company)s and party not in
+											(SELECT party FROM `tabAgeing Details` where parent = %(parent)s AND party_type = 'Customer') group by party""",
+                                  	{'company':company,'s_currency':s_currency,'employee':employee,'parent':parent}, as_dict=True)
+	print(unallocated_amount)
 	return unallocated_amount;

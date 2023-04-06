@@ -70,6 +70,7 @@
    "fieldtype": "Section Break"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "rebate_details",
    "fieldtype": "Table",
    "label": "Rebate Details",
@@ -198,7 +199,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-02-20 12:04:35.140541",
+ "modified": "2023-04-05 12:33:22.905005",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Rebate Process",
