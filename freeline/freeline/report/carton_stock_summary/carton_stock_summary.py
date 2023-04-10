@@ -20,6 +20,7 @@ def get_columns():
 	columns = [
 		_("Company") + ":Link/Company:250",
 		_("Warehouse") + ":Link/Warehouse:150",
+		_("Branch ID") + ":Data:120",
 		_("Item") + ":Link/Item:150",
 		_("Item Name") + ":Data:150",
 		_("Arabic Item Name") + ":Data:150",
@@ -43,20 +44,21 @@ def get_total_stock(filters):
 
 	if filters.get("group_by") == "Warehouse":
 		if filters.get("company"):
-			conditions += " AND warehouse.company = %s" % frappe.db.escape(
-				filters.get("company"), percent=False
-			)
+			company_list = filters.get("company")
+			print(company_list)
+
+			conditions += " AND warehouse.company in %(company)s"
 
 		conditions += " GROUP BY ledger.warehouse, item.item_code"
-		columns += "'' as company, ledger.warehouse"
+		columns += "'' as company, ledger.warehouse, (select branch_id FROM `tabWarehouse` w where w.name = ledger.warehouse)branch_id"
 	else:
 		conditions += " GROUP BY warehouse.company, item.item_code"
-		columns += " warehouse.company, '' as warehouse"
+		columns += " warehouse.company, '' as warehouse, '' as branch_id"
 
 	return frappe.db.sql(
 		"""
 			SELECT
-				%s,
+				{0},
 				item.item_code,
 				item.item_name,
 				item.item_arabic_name,
@@ -77,6 +79,4 @@ def get_total_stock(filters):
 			INNER JOIN `tabWarehouse` warehouse
 				ON warehouse.name = ledger.warehouse
 			WHERE
-				ledger.actual_qty != 0 %s"""
-		% (columns, conditions)
-	)
+				ledger.actual_qty != 0 {1}""".format(columns, conditions), filters)
