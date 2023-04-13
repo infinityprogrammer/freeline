@@ -25,7 +25,7 @@ class PartyStatement(Document):
 	def get_customer_age_days(self,days,customer, currency):
 		condition = ""
 		if days == "1":
-			condition += " and DATEDIFF(CURDATE(),due_date) <= 30"
+			condition += " and DATEDIFF(CURDATE(),due_date) between 0 and 30"
 		elif days == "2":
 			condition += " and DATEDIFF(CURDATE(),due_date) between 31 and 59"
 		elif days == "3":
@@ -50,7 +50,7 @@ class PartyStatement(Document):
 			condition += " and DATEDIFF(CURDATE(),due_date) > 89"
 
 		age_day = frappe.db.sql(""" SELECT IFNULL(SUM(outstanding_amount),0)age_balance FROM `tabSales Invoice`
-									WHERE outstanding_amount != 0 and currency = %(currency_val)s and customer = %(customer)s and company = %(company)s {condition}""".format(condition=condition),
+									WHERE outstanding_amount != 0 AND docstatus = 1 and currency = %(currency_val)s and customer = %(customer)s and company = %(company)s {condition}""".format(condition=condition),
                                   	{'customer': customer,'company':self.get("company"),'currency_val':currency_val}, as_dict=True)
 		return age_day
  
@@ -70,7 +70,8 @@ class PartyStatement(Document):
 		
 		age_entries = frappe.db.sql("""SELECT party_type,party,inv.currency,sum(debit_in_account_currency - credit_in_account_currency)net_balance
 									FROM `tabGL Entry` gl LEFT JOIN `tabSales Invoice` inv ON inv.name = gl.against_voucher
-									where inv.employee = %(employee)s and inv.currency = %(currency_val)s and party_type = 'Customer' and gl.is_cancelled=0 and gl.company = %(company)s and gl.posting_date between %(from_date)s and %(to_date)s group by party_type,party 
+									where inv.employee = %(employee)s and inv.currency = %(currency_val)s and party_type = 'Customer' and gl.is_cancelled=0 
+									and gl.company = %(company)s and gl.posting_date between %(from_date)s and %(to_date)s group by party_type,party 
          							having round(sum(debit_in_account_currency - credit_in_account_currency),1) != 0""",
                                   {'employee': self.get("employee"),'from_date':self.get("from_date"),'to_date':self.get("to_date"),'company':self.get("company"),'currency_val':currency_val}, as_dict=True)
 		
@@ -230,5 +231,13 @@ def get_unallocated_payment_not_in_ageing(company, employee, s_currency, parent)
 											and docstatus=1 and company = %(company)s and party not in
 											(SELECT party FROM `tabAgeing Details` where parent = %(parent)s AND party_type = 'Customer') group by party""",
                                   	{'company':company,'s_currency':s_currency,'employee':employee,'parent':parent}, as_dict=True)
-	print(unallocated_amount)
+	
 	return unallocated_amount;
+
+@frappe.whitelist()
+def get_not_due_amount(company, customer, employee, s_currency, posting_date):
+	not_due_amount = frappe.db.sql(""" SELECT IFNULL(SUM(outstanding_amount),0)no_due FROM `tabSales Invoice`
+								WHERE outstanding_amount != 0 and currency = %(currency)s and customer = %(customer)s and company = %(company)s 
+								and employee = %(employee)s and docstatus=1 and DATEDIFF(CURDATE(),due_date) < 0 and posting_date <= %(posting_date)s """,
+								{'customer': customer, 'employee':employee,'company':company,'currency':s_currency,'posting_date':posting_date}, as_dict=True)
+	return not_due_amount;
