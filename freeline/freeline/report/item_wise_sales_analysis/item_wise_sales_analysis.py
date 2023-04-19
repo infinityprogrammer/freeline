@@ -98,6 +98,7 @@ def _execute(filters=None, additional_table_columns=None, additional_query_colum
 			"collation": d.collation,
 			"inv_currency": d.inv_currency,
 			"conversion_rate": d.conversion_rate,
+			"weight_per_unit": d.weight_per_unit,
 		}
 
 		if additional_query_columns:
@@ -503,6 +504,12 @@ def get_columns(additional_table_columns, filters):
 			"fieldtype": "Data",
 			"width": 100,
 		},
+		{
+			"label": _("Weight Per Unit"),
+			"fieldname": "weight_per_unit",
+			"fieldtype": "Float",
+			"width": 100,
+		},
 	]
 
 	if filters.get("group_by"):
@@ -620,6 +627,7 @@ def get_items(filters, additional_query_columns):
 			ifnull(`tabSales Invoice Item`.batch_no, (SELECT GROUP_CONCAT(dt.batch_no) FROM `tabDelivery Note Item` dt where dt.against_sales_invoice = `tabSales Invoice`.name and dt.si_detail = `tabSales Invoice Item`.name))batch_no,
 			`tabSales Invoice Item`.base_net_rate, `tabSales Invoice Item`.base_net_amount,
 			`tabSales Invoice`.customer_name, `tabSales Invoice`.customer_group, `tabSales Invoice Item`.so_detail,`tabSales Invoice Item`.dn_detail,
+			(SELECT weight_per_unit FROM `tabItem` where `tabItem`.name = `tabSales Invoice Item`.item_code) as weight_per_unit,
 			`tabSales Invoice`.update_stock, `tabSales Invoice Item`.uom, `tabSales Invoice Item`.qty {0}
 		from `tabSales Invoice`, `tabSales Invoice Item`
 		where `tabSales Invoice`.name = `tabSales Invoice Item`.parent

@@ -236,7 +236,9 @@ fixtures = [
                 "Sales Invoice-shipper_inv_no",
                 "Sales Invoice-shipper_invoice_date",
                 "Sales Order-col_brk_02",
-                "Sales Order-brand"
+                "Sales Order-brand",
+                "Purchase Invoice-brand",
+                "Purchase Order-brand"
             ]
         ]
     ]},

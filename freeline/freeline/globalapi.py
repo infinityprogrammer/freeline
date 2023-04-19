@@ -103,6 +103,14 @@ def get_overdue_outstanding(filters):
     return overdue_outstand_val
 
 @frappe.whitelist()
+def get_customer_outstanding(company, customer):
+    overdue_outstand = frappe.db.sql(""" SELECT ifnull(sum(outstanding_amount),0)amount FROM `tabSales Invoice` where company = %(company)s and docstatus = 1 and customer = %(customer)s """,{'company':company, 'customer':customer}, as_dict=True)
+    
+    overdue_outstand_val = overdue_outstand[0].amount
+    return overdue_outstand_val
+
+
+@frappe.whitelist()
 def get_item_barcode(item_code):
     barcode = frappe.db.sql(""" SELECT GROUP_CONCAT(barcode)barcode_str FROM `tabItem Barcode` where `tabItem Barcode`.parent = %(item_code)s  """,{'item_code':item_code}, as_dict=True)
     
