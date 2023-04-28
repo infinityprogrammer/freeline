@@ -51,8 +51,8 @@ def get_data(filters):
 		inv.posting_date,inv.customer,inv.customer_name,inv.customer_group,inv.debit_to as receivable_account, inv.territory, inv.employee, inv.employee_name,
 		inv_item.sales_order, 
 		inv_item.delivery_note,
-		inv_item.income_account, inv.cost_center, inv_item.stock_qty,
-		inv_item.stock_uom, inv_item.qty, inv_item.uom, inv_item.rate, inv_item.amount, inv_item.discount_amount, inv_item.batch_no,
+		inv_item.income_account, inv.cost_center, inv_item.stock_qty,inv_item.base_rate,inv_item.base_amount,
+		inv_item.stock_uom, inv_item.qty, inv_item.uom, inv_item.rate, inv_item.amount, (inv_item.discount_amount*inv_item.qty)discount_amount, inv_item.batch_no,
 		((inv_item.amount/ inv.total)*inv.discount_amount) as invoice_discount_amount,
 		(SELECT group_concat(supplier_part_no) FROM `tabItem Supplier` supp where supp.parent = inv_item.item_code) as supplier_no,
 		(SELECT GROUP_CONCAT(barcode) FROM `tabItem Barcode` tb where tb.parent = inv_item.item_code) as barcode,
@@ -63,8 +63,10 @@ def get_data(filters):
 		(SELECT uom FROM `tabUOM Conversion Detail` um where um.parent = inv_item.item_code order by conversion_factor desc limit 1)highest_uom,
 		(SELECT conversion_factor FROM `tabUOM Conversion Detail` um where um.parent = inv_item.item_code 
 		order by conversion_factor desc limit 1)highest_uom_factor,
-		round((inv_item.qty/(SELECT conversion_factor FROM `tabUOM Conversion Detail` um where um.parent = inv_item.item_code 
+		round((inv_item.stock_qty/(SELECT conversion_factor FROM `tabUOM Conversion Detail` um where um.parent = inv_item.item_code 
 		order by conversion_factor desc limit 1)), 2)qty_highest_uom,
+		(SELECT order_longitude FROM `tabSales Order` so where so.name = inv_item.sales_order)order_longitude,
+		(SELECT order_latitude FROM `tabSales Order` so where so.name = inv_item.sales_order)order_latitude,
 		(SELECT parent_item_group FROM `tabItem Group` ig where ig.name = inv_item.item_group)item_group_parent_1,
 		(SELECT parent_item_group FROM `tabItem Group` 
 		WHERE name = (SELECT parent_item_group FROM `tabItem Group` ig where ig.name = inv_item.item_group))item_group_parent_2
@@ -302,11 +304,25 @@ def get_columns():
 			"width": 100,
 		},
 		{
+			"label": _("Base Rate (USD)"),
+			"fieldname": "base_rate",
+			"fieldtype": "Float",
+			"options": "currency",
+			"width": 140,
+		},
+		{
 			"label": _("Amount"),
 			"fieldname": "amount",
 			"fieldtype": "Currency",
 			"options": "currency",
 			"width": 100,
+		},
+		{
+			"label": _("Base Amount (USD)"),
+			"fieldname": "base_amount",
+			"fieldtype": "Currency",
+			"options": "currency",
+			"width": 140,
 		},
 		{
 			"label": _("Discount Amount"),
@@ -357,6 +373,18 @@ def get_columns():
 			"fieldname": "weight_per_unit",
 			"fieldtype": "Float",
 			"width": 100,
+		},
+		{
+			"label": _("Order Longitude"),
+			"fieldname": "order_longitude",
+			"fieldtype": "Data",
+			"width": 140,
+		},
+		{
+			"label": _("Order Latitude"),
+			"fieldname": "order_latitude",
+			"fieldtype": "Data",
+			"width": 140,
 		},
 	]
 
