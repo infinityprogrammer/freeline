@@ -21,7 +21,7 @@ frappe.query_reports["Item Barcode Price List"] = {
 			"label": __("Price List"),
 			"fieldtype": "Link",
 			"options": "Price List",
-			"default": "Standard Selling"
+			"default": "Standard Price"
 		},
 		{
 			"fieldname": "is_stock_item",

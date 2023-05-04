@@ -238,7 +238,8 @@ fixtures = [
                 "Sales Order-col_brk_02",
                 "Sales Order-brand",
                 "Purchase Invoice-brand",
-                "Purchase Order-brand"
+                "Purchase Order-brand",
+                "Sales Invoice-payment_receipt"
             ]
         ]
     ]},

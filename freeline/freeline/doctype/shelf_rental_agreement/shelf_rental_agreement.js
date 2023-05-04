@@ -4,6 +4,15 @@
 frappe.ui.form.on('Shelf Rental Agreement', {
 	refresh: function(frm) {
 
+		frm.set_query("shelf_item", function(frm) {
+			
+			return {
+				filters: {
+					'item_group': 'Rebate and Shelf Items'
+				}
+			}
+		});
+
 	},
 
 	validate: function(frm) {

@@ -450,7 +450,8 @@ def generate_rebate_process():
                                             SELECT inv.name,it.qty,it.rate,it.base_net_amount,it.brand,r.rebate_percentage,(it.base_net_amount*r.rebate_percentage/100)rebate_amt
                                             FROM `tabSales Invoice` inv, `tabSales Invoice Item` it, `tabRebate Definition` r,`tabRental Invoices` ri where 
                                             inv.name = it.parent and it.brand = r.brand and r.parent = ri.parent
-                                            and inv.docstatus=1 and r.parent = %(rebate)s and it.item_code not in ('SHELF RENT', 'REBATE') 
+                                            and inv.docstatus=1 and r.parent = %(rebate)s 
+                                            and it.item_code not in (SELECT item.name FROM `tabItem` item where item.item_group in ('Rebate and Shelf Items'))
                                             and employee = %(employee)s and customer = %(customer)s and inv.company = %(company)s
                                             and posting_date between %(start_date)s and %(end_date)s and ri.date = %(end_date)s)a1
                                             group by brand HAVING sum(rebate_amt) > 0""",
@@ -485,7 +486,7 @@ def generate_rebate_process():
                     
                     total_rebate_val += rebate.rebate_amt*-1
                     si.append("items",{
-                                        "item_code" : 'REBATE',
+                                        "item_code" : cust.rebate_item if cust.rebate_item else 'REBATE',
                                         "description" : 'Brand : {0} - Period : {1} and {2} - Total Brand sale : {3} - Rebate Percentage : {4} - Duration : {5}'.format(rebate.brand,month_first_day,month_last_day,brand_obj[0].amount,brand_obj[0].rebate_percentage,cust.rebate_duration),
                                         "qty" : -1,
                                         "rate" : rebate.rebate_amt*-1,
@@ -585,7 +586,7 @@ def generate_shelf_rentals():
     
 
     shelf_rental_entries = frappe.db.sql("""SELECT a.name,a.company,a.currency,rent_type,description,from_date,to_date,a.amount,a.brand,a.sales_rep,a.customer,
-                                            b.name as detl_name,is_generated,b.date,b.idx 
+                                            b.name as detl_name,is_generated,b.date,b.idx,a.shelf_item
                                             FROM `tabShelf Rental Agreement` a, `tabRental Invoices` b
                                             where a.name = b.parent and b.date = %(date)s
                                             and a.docstatus=1 
@@ -618,7 +619,7 @@ def generate_shelf_rentals():
             si.remarks = 'Shelf rental generated in the period of {0} and {1}. type : {2} - {3}'.format(month_first_day,last_month_last_day,entry.rent_type,entry.description)
             
             si.append("items",{
-                                "item_code" : 'SHELF RENT',
+                                "item_code" : entry.shelf_item if entry.shelf_item else 'SHELF RENT',
                                 "description" : 'Shelf rental generated in the period of {0} and {1}. Rebate type : {2} - {3}'.format(month_first_day,last_month_last_day,entry.rent_type,entry.description),
                                 "qty" : -1,
                                 "rate" : entry.amount,
@@ -679,7 +680,7 @@ def get_brand_sale(rebate, sales_rep,customer,company, month_first_day,month_las
                                     inv.name = it.parent and it.brand = r.brand
                                     and inv.docstatus=1 
                                     and r.parent = %(rebate)s
-                                    and it.item_code != 'REBATE' 
+                                    and it.item_code not in (SELECT item.name FROM `tabItem` item where item.item_group in ('Rebate and Shelf Items')) 
                                     and employee = %(employee)s and customer = %(customer)s and inv.company = %(company)s
                                     and posting_date between %(start_date)s and %(end_date)s and it.brand = %(brand)s
                                     group by it.brand,r.rebate_percentage """,

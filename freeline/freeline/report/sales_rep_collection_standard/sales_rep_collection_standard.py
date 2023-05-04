@@ -44,7 +44,7 @@ def get_data(filters):
 					sales_p.append(s.employee)
 		filters['sales_person'] = sales_p
 
-	print(filters)
+	# print(filters)
 
 	conditions += " and posting_date between %(from_date)s and %(to_date)s and b.company = %(company)s"
 	conditions += " and (select inv.employee from `tabSales Invoice` inv where inv.name = a.reference_name) in %(sales_person)s"
@@ -54,20 +54,60 @@ def get_data(filters):
 		SELECT (select inv.employee from `tabSales Invoice` inv where inv.name = a.reference_name)employee,
 		(SELECT sp.parent from `tabSales Person` sp where 
 		sp.employee = (select employee from `tabSales Invoice` inv where inv.name = a.reference_name))sales_team,
-		b.posting_date, b.name,a.reference_name,
+		b.posting_date, b.name,a.reference_name,paid_from_account_currency, paid_to_account_currency,
 		round(a.total_amount,2)total_amount,round(a.allocated_amount,2)allocated_amount,
 		((round(a.allocated_amount,2)/round(a.total_amount,2))*100)rec_perce,
 		(select status from `tabSales Invoice` inv where inv.name = a.reference_name)status,
 		datediff(curdate(),(select inv.due_date from `tabSales Invoice` inv where inv.name = a.reference_name))due_age,
 		(SELECT payment_terms FROM `tabCustomer` c where c.name = (select customer from `tabSales Invoice` 
-		inv where inv.name = a.reference_name))payment_terms,
+		inv where inv.name = a.reference_name))payment_terms,paid_from_account_currency,
 		round((select outstanding_amount from `tabSales Invoice` inv where inv.name = a.reference_name),2)outstanding_amount,
-		(select employee_name from `tabSales Invoice` inv where inv.name = a.reference_name)employee_name
+		(select employee_name from `tabSales Invoice` inv where inv.name = a.reference_name)employee_name,
+		b.paid_to_account_currency as collection_currency,b.base_paid_amount,
+		--
+		round(IF(b.paid_from_account_currency = 'IQD' AND b.paid_to_account_currency = 'IQD',
+		(SELECT IFNULL(SUM(amount), 0) FROM `tabPayment Entry Deduction` d WHERE d.parent = b.name),
+		((SELECT IFNULL(SUM(amount), 0) FROM `tabPayment Entry Deduction` d WHERE d.parent = b.name) / b.base_paid_amount) * ROUND(a.allocated_amount, 2)), 3)exchange_loss_usd,
+		--
+		round((round(a.allocated_amount,3) - IF(b.paid_from_account_currency = 'IQD' AND b.paid_to_account_currency = 'IQD',
+		(SELECT IFNULL(SUM(amount), 0) FROM `tabPayment Entry Deduction` d WHERE d.parent = b.name),
+		((SELECT IFNULL(SUM(amount), 0) FROM `tabPayment Entry Deduction` d 
+		WHERE d.parent = b.name) / b.base_paid_amount) * ROUND(a.allocated_amount, 2))), 3)net_recieved_after_el,
+		--
+		(received_amount/b.base_paid_amount)exchange_rate,
+		--
+		round(IF(b.paid_from_account_currency = 'IQD' AND b.paid_to_account_currency = 'IQD',
+		round(((received_amount/b.paid_amount)*round(a.allocated_amount,2)), 3),
+		round(((received_amount/b.base_paid_amount)*round(a.allocated_amount,2)), 3)), 3)recieved_bf_ded_el,
+		--
+		round(((received_amount/b.base_paid_amount)*round(a.allocated_amount,2)), 3)rec_bf_ded,
+		--
+		round(IF(b.paid_from_account_currency = 'IQD' AND b.paid_to_account_currency = 'IQD',
+		((round(a.allocated_amount,2) - ((SELECT ifnull(sum(amount),0) FROM `tabPayment Entry Deduction` d 
+		where d.parent = b.name)/b.base_paid_amount)*round(a.allocated_amount,2))*(received_amount/b.paid_amount)),
+		((round(a.allocated_amount,2) - ((SELECT ifnull(sum(amount),0) FROM `tabPayment Entry Deduction` d 
+		where d.parent = b.name)/b.base_paid_amount)*round(a.allocated_amount,2))*(received_amount/b.base_paid_amount))) , 2)act_ledger_amt
+		--
 		FROM `tabPayment Entry Reference` a, `tabPayment Entry` b
 		where a.parent = b.name and b.docstatus = 1 and b.party_type = 'Customer' {0}""".format(conditions),filters,as_dict=1)
 
+	for row in data:
+		if row.paid_from_account_currency == "USD" and row.paid_to_account_currency == "IQD":
+			pass
+
 	return data
 
+def get_invoice_ded(payment_entry, base_paid_amount, allocated_amount):
+	
+	data = frappe.db.sql(
+		"""
+		((SELECT sum(amount)exc_loss FROM `tabPayment Entry Deduction` 
+		d where d.parent = {0})/{1})*round({2},2)""".format(payment_entry, base_paid_amount, allocated_amount),as_dict=1)
+	
+	if data:
+		return data[0].exc_loss
+	else:
+		return 0
 
 def get_columns(filters):
 
@@ -124,12 +164,50 @@ def get_columns(filters):
 			"fieldtype": "Float",
 			"width": 140,
 		},
+		{
+			"label": _("Paid From Currency"),
+			"fieldname": "paid_from_account_currency",
+			"fieldtype": "Link",
+			"options": "Currency",
+			"width": 140,
+		},
+		{
+			"label": _("Collection Currency"),
+			"fieldname": "collection_currency",
+			"fieldtype": "Link",
+			"options": "Currency",
+			"width": 140,
+		},
+		{
+			"label": _("Exchange Loss (USD)"),
+			"fieldname": "exchange_loss_usd",
+			"fieldtype": "Float",
+			"width": 120,
+		},
 		# {
-		# 	"label": _("% Recieved"),
-		# 	"fieldname": "rec_perce",
-		# 	"fieldtype": "Percent",
-		# 	"width": 100,
+		# 	"label": _("Net Recieved After EL"),
+		# 	"fieldname": "net_recieved_after_el",
+		# 	"fieldtype": "Float",
+		# 	"width": 150,
 		# },
+		{
+			"label": _("Recieved in CC Before EL"),
+			"fieldname": "recieved_bf_ded_el",
+			"fieldtype": "Float",
+			"width": 160,
+		},
+		{
+			"label": _("Exchange Rate"),
+			"fieldname": "exchange_rate",
+			"fieldtype": "Float",
+			"width": 120,
+		},
+		{
+			"label": _("Net Amount After EL"),
+			"fieldname": "act_ledger_amt",
+			"fieldtype": "Float",
+			"width": 160,
+		},
 		{
 			"label": _("Status"),
 			"fieldname": "status",

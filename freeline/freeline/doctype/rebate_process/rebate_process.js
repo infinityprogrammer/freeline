@@ -13,6 +13,15 @@ frappe.ui.form.on('Rebate Process', {
 			}
 		});
 
+		frm.set_query("rebate_item", function(frm) {
+			
+			return {
+				filters: {
+					'item_group': 'Rebate and Shelf Items'
+				}
+			}
+		});
+
 	},
 	validate: function(frm) {
 

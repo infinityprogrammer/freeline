@@ -20,12 +20,14 @@
    "options": "Item Group"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "rebate_percentage",
    "fieldtype": "Percent",
    "in_list_view": 1,
    "label": "Rebate Percentage"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "brand",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -36,7 +38,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2023-02-01 15:12:16.790868",
+ "modified": "2023-05-01 09:58:26.263862",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Rebate Definition",
