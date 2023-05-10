@@ -49,7 +49,7 @@ class PartyStatement(Document):
 		else:
 			condition += " and DATEDIFF(CURDATE(),due_date) > 89"
 
-		age_day = frappe.db.sql(""" SELECT IFNULL(SUM(outstanding_amount),0)age_balance FROM `tabSales Invoice`
+		age_day = frappe.db.sql(""" SELECT IFNULL(round(SUM(outstanding_amount/conversion_rate),2),0)age_balance FROM `tabSales Invoice`
 									WHERE outstanding_amount != 0 AND docstatus = 1 and currency = %(currency_val)s and customer = %(customer)s and company = %(company)s {condition}""".format(condition=condition),
                                   	{'customer': customer,'company':self.get("company"),'currency_val':currency_val}, as_dict=True)
 		return age_day

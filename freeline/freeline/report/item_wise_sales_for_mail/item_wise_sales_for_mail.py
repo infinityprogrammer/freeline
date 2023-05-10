@@ -65,6 +65,8 @@ def get_data(filters):
 		order by conversion_factor desc limit 1)highest_uom_factor,
 		round((inv_item.stock_qty/(SELECT conversion_factor FROM `tabUOM Conversion Detail` um where um.parent = inv_item.item_code 
 		order by conversion_factor desc limit 1)), 2)qty_highest_uom,
+		(SELECT longitude FROM `tabCustomer` cust where cust.name = inv.customer)customer_longitude,
+		(SELECT latitude FROM `tabCustomer` cust where cust.name = inv.customer)customer_latitude,
 		(SELECT order_longitude FROM `tabSales Order` so where so.name = inv_item.sales_order)order_longitude,
 		(SELECT order_latitude FROM `tabSales Order` so where so.name = inv_item.sales_order)order_latitude,
 		(SELECT parent_item_group FROM `tabItem Group` ig where ig.name = inv_item.item_group)item_group_parent_1,
@@ -384,6 +386,18 @@ def get_columns():
 			"label": _("Order Latitude"),
 			"fieldname": "order_latitude",
 			"fieldtype": "Data",
+			"width": 140,
+		},
+		{
+			"label": _("Customer Longitude"),
+			"fieldname": "customer_longitude",
+			"fieldtype": "Float",
+			"width": 150,
+		},
+		{
+			"label": _("Customer Latitude"),
+			"fieldname": "customer_latitude",
+			"fieldtype": "Float",
 			"width": 140,
 		},
 	]

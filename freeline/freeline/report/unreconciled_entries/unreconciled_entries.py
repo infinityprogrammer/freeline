@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+from frappe.utils import get_url
 
 def execute(filters=None):
 	columns, data = [], []
@@ -13,21 +14,39 @@ def execute(filters=None):
 
 def get_data(filters):
 	conditions = ""
-	if filters.get("employee"):
-		conditions = " and employee = %(employee)s"
+	data = []
+	
 
 	if not filters.get("company"):
 		return
+	base_url = get_url()
 	
-	data = frappe.db.sql(
-		"""
-		SELECT * FROM (
-		SELECT 'Payment Entry' voucher_type, name as voucher_no,company,posting_date,party,party_name,employee,
-		employee_name,status,unallocated_amount FROM `tabPayment Entry` where unallocated_amount > 0
-		and payment_type = 'Receive' and party_type = 'Customer' and docstatus = 1 and company = %(company)s
-		union all
-		SELECT 'Sales Invoice' voucher_type,name as voucher_no,company,posting_date,customer,customer_name,employee,employee_name,status,outstanding_amount 
-		FROM `tabSales Invoice` where round(outstanding_amount,2) != 0 and docstatus = 1 and company = %(company)s)a1 where 1=1 {0}""".format(conditions),filters,as_dict=1)
+	if base_url in ["https://cloud.tiejan.com", "https://cloud.tiejan.com/"]:
+
+		if filters.get("employee"):
+			conditions = " and employee = %(employee)s"
+	
+		data = frappe.db.sql(
+			"""
+			SELECT * FROM (
+			SELECT 'Payment Entry' voucher_type, name as voucher_no,company,posting_date,party,party_name,employee,
+			employee_name,status,unallocated_amount FROM `tabPayment Entry` where unallocated_amount > 0
+			and payment_type = 'Receive' and party_type = 'Customer' and docstatus = 1 and company = %(company)s
+			union all
+			SELECT 'Sales Invoice' voucher_type,name as voucher_no,company,posting_date,customer,customer_name,employee,employee_name,status,outstanding_amount 
+			FROM `tabSales Invoice` where round(outstanding_amount,2) != 0 and docstatus = 1 and company = %(company)s)a1 where 1=1 {0}""".format(conditions),filters,as_dict=1)
+	else:
+		
+		data = frappe.db.sql(
+			"""
+			SELECT * FROM (
+			SELECT 'Payment Entry' voucher_type, name as voucher_no,company,posting_date,party,party_name,
+			status,unallocated_amount FROM `tabPayment Entry` where unallocated_amount > 0
+			and payment_type = 'Receive' and party_type = 'Customer' and docstatus = 1 and company = %(company)s
+			union all
+			SELECT 'Sales Invoice' voucher_type,name as voucher_no,company,posting_date,customer,customer_name,status,outstanding_amount 
+			FROM `tabSales Invoice` where round(outstanding_amount,2) != 0 and docstatus = 1 and company = %(company)s)a1 where 1=1 {0}""".format(conditions),filters,as_dict=1)
+
 
 	return data
 

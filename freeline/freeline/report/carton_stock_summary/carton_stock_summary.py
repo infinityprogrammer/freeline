@@ -42,10 +42,13 @@ def get_total_stock(filters):
 	conditions = ""
 	columns = ""
 
+	if filters.get("brand"):
+		conditions += " AND item.brand in %(brand)s"
+
 	if filters.get("group_by") == "Warehouse":
 		if filters.get("company"):
-			company_list = filters.get("company")
-			print(company_list)
+			# company_list = filters.get("company")
+			# print(company_list)
 
 			conditions += " AND warehouse.company in %(company)s"
 
@@ -54,7 +57,7 @@ def get_total_stock(filters):
 	else:
 		conditions += " GROUP BY warehouse.company, item.item_code"
 		columns += " warehouse.company, '' as warehouse, '' as branch_id"
-
+	
 	return frappe.db.sql(
 		"""
 			SELECT

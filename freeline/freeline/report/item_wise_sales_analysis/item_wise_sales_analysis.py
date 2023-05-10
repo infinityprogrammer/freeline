@@ -510,6 +510,18 @@ def get_columns(additional_table_columns, filters):
 			"fieldtype": "Float",
 			"width": 100,
 		},
+		{
+			"label": _("Customer Longitude"),
+			"fieldname": "customer_longitude",
+			"fieldtype": "Float",
+			"width": 150,
+		},
+		{
+			"label": _("Customer Latitude"),
+			"fieldname": "customer_latitude",
+			"fieldtype": "Float",
+			"width": 140,
+		},
 	]
 
 	if filters.get("group_by"):
@@ -626,6 +638,8 @@ def get_items(filters, additional_query_columns):
 			(SELECT parent_item_group FROM `tabItem Group` ig2 where ig2.name = (SELECT parent_item_group FROM `tabItem Group` ig where ig.name = `tabSales Invoice Item`.`item_group`))parent_item_group2,
 			ifnull(`tabSales Invoice Item`.batch_no, (SELECT GROUP_CONCAT(dt.batch_no) FROM `tabDelivery Note Item` dt where dt.against_sales_invoice = `tabSales Invoice`.name and dt.si_detail = `tabSales Invoice Item`.name))batch_no,
 			`tabSales Invoice Item`.base_net_rate, `tabSales Invoice Item`.base_net_amount,
+			(SELECT longitude FROM `tabCustomer` cust where cust.name = `tabSales Invoice`.customer)customer_longitude,
+			(SELECT latitude FROM `tabCustomer` cust where cust.name = `tabSales Invoice`.customer)customer_latitude,
 			`tabSales Invoice`.customer_name, `tabSales Invoice`.customer_group, `tabSales Invoice Item`.so_detail,`tabSales Invoice Item`.dn_detail,
 			(SELECT weight_per_unit FROM `tabItem` where `tabItem`.name = `tabSales Invoice Item`.item_code) as weight_per_unit,
 			`tabSales Invoice`.update_stock, `tabSales Invoice Item`.uom, `tabSales Invoice Item`.qty {0}
