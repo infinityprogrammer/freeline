@@ -113,7 +113,10 @@ doc_events = {
 	# },
     "Delivery Note":{
         "before_save": "freeline.freeline.globalapi.get_picklist_in_dn",
-    }
+    },
+    "Stock Entry":{
+        "validate": "freeline.freeline.globalapi.validate_same_batch",
+    },
 }
 
 

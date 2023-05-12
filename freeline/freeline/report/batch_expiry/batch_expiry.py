@@ -14,6 +14,8 @@ def execute(filters=None):
 def get_data(filters):
 	
 	conditions = ""
+	# if not filters.get("company"):
+	# 	return
 
 	if filters.get("item_code"):
 		conditions += " and b.item = %(item_code)s"
@@ -24,17 +26,23 @@ def get_data(filters):
 
 	data = frappe.db.sql(
 		"""
-		SELECT b.name as batch,b.item,b.item_name,batch_qty,
-		b.stock_uom,manufacturing_date,expiry_date,warehouse,actual_qty,datediff(expiry_date, curdate())day_dif,
+		SELECT led.company,b.batch_id, b.item, b.item_name,b.manufacturing_date,
+		b.batch_qty, b.stock_uom,b.expiry_date,led.warehouse,led.actual_qty,
+		datediff(b.expiry_date, curdate())day_dif,stock_value,
 		(SELECT uom FROM `tabUOM Conversion Detail` um where um.parent = b.item order by conversion_factor desc limit 1)highest_uom,
 		(SELECT conversion_factor FROM `tabUOM Conversion Detail` um where um.parent = b.item 
 		order by conversion_factor desc limit 1)highest_uom_factor,
-		(actual_qty/ (SELECT conversion_factor FROM `tabUOM Conversion Detail` um 
+		(led.actual_qty/ (SELECT conversion_factor FROM `tabUOM Conversion Detail` um 
 		where um.parent = b.item order by conversion_factor desc limit 1)) as qty_in_huom,
-		(select GROUP_CONCAT(supplier) from `tabItem Supplier` where `tabItem Supplier`.parent = b.item) as supplier,stock_value
-		FROM `tabBatch` b, `tabBin` bin
-		where b.item = bin.item_code
-		and expiry_date is not null and expiry_date != '' {0}""".format(conditions),filters,as_dict=1)
+		(select GROUP_CONCAT(supplier) from `tabItem Supplier` where `tabItem Supplier`.parent = b.item) as supplier
+		FROM `tabBatch` b,
+		(select sle.company,sle.batch_no,sle.item_code,sle.warehouse,sum(sle.actual_qty)actual_qty,
+		sum(stock_value_difference)stock_value
+		FROM `tabStock Ledger Entry` sle
+		where sle.is_cancelled = 0 and sle.batch_no <> '' and sle.batch_no is not null
+		group by sle.company,sle.batch_no,sle.item_code,sle.warehouse
+		having sum(sle.actual_qty) <> 0)led 
+		where b.batch_id = led.batch_no and b.item = led.item_code AND b.expiry_date is not null {0}""".format(conditions),filters,as_dict=1)
 
 	return data
 
@@ -56,9 +64,9 @@ def get_columns():
 		},
 		{
 			"label": _("Batch"),
-			"fieldname": "batch",
+			"fieldname": "batch_id",
 			"fieldtype": "Link",
-			"options": "Item",
+			"options": "Batch",
 			"width": 140,
 		},
 		{

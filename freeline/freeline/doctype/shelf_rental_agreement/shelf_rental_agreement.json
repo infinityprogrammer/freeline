@@ -26,6 +26,8 @@
   "description",
   "enabled",
   "shelf_item",
+  "initial_target",
+  "target_on_all_brand",
   "section_break_17",
   "generated_invoices",
   "invoices",
@@ -188,12 +190,25 @@
    "fieldtype": "Link",
    "label": "Shelf Item",
    "options": "Item"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "initial_target",
+   "fieldtype": "Currency",
+   "label": "Initial Target"
+  },
+  {
+   "allow_on_submit": 1,
+   "default": "0",
+   "fieldname": "target_on_all_brand",
+   "fieldtype": "Check",
+   "label": "Target On All Brand"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-05-02 08:58:41.821190",
+ "modified": "2023-05-12 11:21:31.106109",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Shelf Rental Agreement",

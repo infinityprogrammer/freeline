@@ -586,7 +586,8 @@ def generate_shelf_rentals():
     
 
     shelf_rental_entries = frappe.db.sql("""SELECT a.name,a.company,a.currency,rent_type,description,from_date,to_date,a.amount,a.brand,a.sales_rep,a.customer,
-                                            b.name as detl_name,is_generated,b.date,b.idx,a.shelf_item
+                                            b.name as detl_name,is_generated,b.date,b.idx,a.shelf_item, a.initial_target, 
+                                            a.target_on_all_brand, a.brand
                                             FROM `tabShelf Rental Agreement` a, `tabRental Invoices` b
                                             where a.name = b.parent and b.date = %(date)s
                                             and a.docstatus=1 
@@ -594,7 +595,16 @@ def generate_shelf_rentals():
                                             and is_generated = 0 """,{'date': last_month_last_day}, as_dict=True)
 
     for entry in shelf_rental_entries:
+
+        validate_brand_sale = get_shelf_rent_brand_sale(month_first_day, last_month_last_day, entry.customer, entry.sales_rep, entry.company, entry.brand, entry.target_on_all_brand)
         
+
+        if entry.initial_target:
+            if validate_brand_sale < entry.initial_target:
+                update_invoice_genetrate(entry.name, entry.detl_name,'No Target Achieved', 0)
+                update_shelf_status(entry.date, entry.from_date, entry.to_date, entry.detl_name,entry.name,entry.idx)
+                continue
+
         prev_rent = already_process_shelf_rental(entry.company, entry.customer, entry.sales_rep, last_month_last_day, entry.brand,entry.name)
         
         if not prev_rent:
@@ -722,6 +732,42 @@ def get_uom_qty_sum_inv(doc_name):
                                     {'doc_name': doc_name}, as_dict=True)
     return uom_sum
 
+def get_shelf_rent_brand_sale(from_date, to_date, customer, employee, company, brand, is_all_brand):
+    brand_cond = ""
+    if is_all_brand:
+        brand_cond = " and item.brand is not null and item.brand <> '' "
+    else:
+        brand_cond = " and item.brand = %(brand)s "
+
+    brand_sale = frappe.db.sql("""  SELECT ifnull(sum(base_net_amount), 0)base_net_amount FROM (
+                                    SELECT inv.name,posting_date,item_code,item.brand,item.base_net_amount 
+                                    FROM `tabSales Invoice` inv, `tabSales Invoice Item` item
+                                    where inv.name = item.parent {0}
+                                    and inv.posting_date between %(from_date)s and %(to_date)s and company = %(company)s 
+                                    and inv.docstatus = 1 and inv.employee = %(employee)s and inv.customer = %(customer)s)a1""".format(brand_cond),
+                                    {'employee': employee,'from_date':from_date,'to_date':to_date,'company':company,'customer':customer,'brand':brand}, as_dict=True)
+    
+    if brand_sale:
+        return brand_sale[0].base_net_amount
+    else:
+        return 0
+
+def validate_same_batch(self, arg):
+
+    if self.stock_entry_type == 'Material Transfer':
+        van_warehouse = frappe.db.get_list('Warehouse', filters={'name': ['like', '%Cash Van%']}, pluck='name')
+        for row in self.items:
+            if row.batch_no:
+                if row.t_warehouse in van_warehouse:
+                    batch_in_wh = frappe.db.sql(""" SELECT ifnull(sum(actual_qty), 0)actual_qty
+                                                    FROM `tabStock Ledger Entry` where warehouse = %(warehouse)s
+                                                    and is_cancelled = 0 and item_code = %(item_code)s
+                                                    and batch_no = %(batch_no)s """,
+                                                    {'warehouse': row.t_warehouse,'item_code': row.item_code, 'batch_no': row.batch_no}, as_dict=True)
+                    if batch_in_wh:
+                        if batch_in_wh[0].actual_qty:
+                            frappe.throw(f" {row.t_warehouse} Warehouse has already stock in this item and this batch.")
+                        
 # bench execute freeline.freeline.globalapi.generate_rebate_process
 
 # bench execute freeline.freeline.globalapi.generate_shelf_rentals
