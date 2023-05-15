@@ -120,7 +120,7 @@ frappe.ui.form.on('Party Statement', {
 				doc:frm.doc,
 				args: {
 					doc: frm.doc,
-					currency_val: 'USD'
+					currency_val: frm.doc.usd_currency,
 				},
 				freeze: true,
 				freeze_message: "Fetching Ageing...",
@@ -160,7 +160,7 @@ frappe.ui.form.on('Party Statement', {
 				doc:frm.doc,
 				args: {
 					doc: frm.doc,
-					currency_val: 'USD',
+					currency_val: frm.doc.usd_currency,
 				},
 				freeze: true,
 				freeze_message: "Fetching Ageing...",
@@ -205,7 +205,7 @@ frappe.ui.form.on('Party Statement', {
 				doc:frm.doc,
 				args: {
 					doc: frm.doc,
-					currency_val: 'IQD'
+					currency_val: frm.doc.iqd_currency
 				},
 				freeze: true,
 				freeze_message: "Fetching Ageing...",
@@ -245,7 +245,7 @@ frappe.ui.form.on('Party Statement', {
 				doc:frm.doc,
 				args: {
 					doc: frm.doc,
-					currency_val: 'IQD'
+					currency_val: frm.doc.iqd_currency
 				},
 				freeze: true,
 				freeze_message: "Fetching Ageing...",
@@ -259,7 +259,7 @@ frappe.ui.form.on('Party Statement', {
 								party_type: "Customer",
 								party: invs[i].party,
 								party_name: invs[i].party_name,
-								balance: invs[i].net_balance,
+								balance: invs[i].first + invs[i].second + invs[i].third + invs[i].ext,
 								opening: invs[i].opening,
 								age_30: invs[i].first,
 								age_60: invs[i].second,

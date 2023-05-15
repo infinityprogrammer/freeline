@@ -28,12 +28,13 @@ def get_data(filters):
 		"""
 		SELECT led.company,b.batch_id, b.item, b.item_name,b.manufacturing_date,
 		b.batch_qty, b.stock_uom,b.expiry_date,led.warehouse,led.actual_qty,
+		(select it.brand from `tabItem` it where it.name = b.item)brand,
 		datediff(b.expiry_date, curdate())day_dif,stock_value,
 		(SELECT uom FROM `tabUOM Conversion Detail` um where um.parent = b.item order by conversion_factor desc limit 1)highest_uom,
 		(SELECT conversion_factor FROM `tabUOM Conversion Detail` um where um.parent = b.item 
 		order by conversion_factor desc limit 1)highest_uom_factor,
-		(led.actual_qty/ (SELECT conversion_factor FROM `tabUOM Conversion Detail` um 
-		where um.parent = b.item order by conversion_factor desc limit 1)) as qty_in_huom,
+		round((led.actual_qty/ (SELECT conversion_factor FROM `tabUOM Conversion Detail` um 
+		where um.parent = b.item order by conversion_factor desc limit 1)), 2) as qty_in_huom,
 		(select GROUP_CONCAT(supplier) from `tabItem Supplier` where `tabItem Supplier`.parent = b.item) as supplier
 		FROM `tabBatch` b,
 		(select sle.company,sle.batch_no,sle.item_code,sle.warehouse,sum(sle.actual_qty)actual_qty,
@@ -60,6 +61,13 @@ def get_columns():
 			"label": _("Item Name"),
 			"fieldname": "item_name",
 			"fieldtype": "Data",
+			"width": 140,
+		},
+		{
+			"label": _("Brand"),
+			"fieldname": "brand",
+			"fieldtype": "Link",
+			"options": "Item",
 			"width": 140,
 		},
 		{

@@ -41,43 +41,49 @@
    "fieldname": "age_30",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Age 30"
+   "label": "Age 30",
+   "options": "usd_currency"
   },
   {
    "fieldname": "age_60",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Age 60"
+   "label": "Age 60",
+   "options": "usd_currency"
   },
   {
    "fieldname": "age_90",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Age 90"
+   "label": "Age 90",
+   "options": "usd_currency"
   },
   {
    "fieldname": "above_120",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Above 90"
+   "label": "Above 90",
+   "options": "usd_currency"
   },
   {
    "fieldname": "balance",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Balance"
+   "label": "Balance",
+   "options": "usd_currency"
   },
   {
    "fieldname": "opening",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Opening"
+   "label": "Opening",
+   "options": "usd_currency"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2022-08-31 13:01:08.997906",
+ "modified": "2023-05-15 11:02:33.938944",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Ageing Details",

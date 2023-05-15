@@ -24,8 +24,10 @@
   "statement_details",
   "section_break_12",
   "get_ageing",
+  "usd_currency",
   "ageing_details",
   "get_ageing_iqd",
+  "iqd_currency",
   "ageing_details_iqd",
   "include_ageing",
   "include_statement"
@@ -164,11 +166,25 @@
    "fieldname": "get_ageing_iqd",
    "fieldtype": "Button",
    "label": "Get Ageing IQD"
+  },
+  {
+   "default": "USD",
+   "fieldname": "usd_currency",
+   "fieldtype": "Link",
+   "label": "USD Currency",
+   "options": "Currency"
+  },
+  {
+   "default": "IQD",
+   "fieldname": "iqd_currency",
+   "fieldtype": "Link",
+   "label": "IQD Currency",
+   "options": "Currency"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-03-06 14:42:54.823823",
+ "modified": "2023-05-15 12:45:00.716474",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Party Statement",

@@ -767,7 +767,20 @@ def validate_same_batch(self, arg):
                     if batch_in_wh:
                         if batch_in_wh[0].actual_qty:
                             frappe.throw(f" {row.t_warehouse} Warehouse has already stock in this item and this batch.")
-                        
+
+@frappe.whitelist()
+def get_customer_rec_account(customer, company):
+    
+    acc = frappe.db.get_value('Sales Invoice', {'docstatus': 1, 'customer' : customer, 'company': company}, 'debit_to')
+    if acc:
+        return acc
+    else:
+        company_acc = frappe.db.get_value('Company', company, 'default_receivable_account')
+        if company_acc:
+            return company_acc
+        else:
+            return 0
+
 # bench execute freeline.freeline.globalapi.generate_rebate_process
 
 # bench execute freeline.freeline.globalapi.generate_shelf_rentals
