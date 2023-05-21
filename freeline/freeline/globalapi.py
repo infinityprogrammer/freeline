@@ -753,20 +753,25 @@ def get_shelf_rent_brand_sale(from_date, to_date, customer, employee, company, b
         return 0
 
 def validate_same_batch(self, arg):
+    
+    cashvan_enable = frappe.get_doc('Tiejan Internal Settings')
+    if not cashvan_enable.cash_van_batch_validation:
+        return
 
     if self.stock_entry_type == 'Material Transfer':
-        van_warehouse = frappe.db.get_list('Warehouse', filters={'name': ['like', '%Cash Van%']}, pluck='name')
+        van_warehouse = frappe.db.get_list('Warehouse', filters={'name': ['like', '%Stores%']}, pluck='name')
         for row in self.items:
             if row.batch_no:
                 if row.t_warehouse in van_warehouse:
-                    batch_in_wh = frappe.db.sql(""" SELECT ifnull(sum(actual_qty), 0)actual_qty
+                    batch_in_wh = frappe.db.sql(""" SELECT batch_no,ifnull(sum(actual_qty), 0)actual_qty
                                                     FROM `tabStock Ledger Entry` where warehouse = %(warehouse)s
-                                                    and is_cancelled = 0 and item_code = %(item_code)s
-                                                    and batch_no = %(batch_no)s """,
-                                                    {'warehouse': row.t_warehouse,'item_code': row.item_code, 'batch_no': row.batch_no}, as_dict=True)
+                                                    and is_cancelled = 0 and item_code = %(item_code)s and batch_no != %(batch_no)s
+                                                    GROUP BY batch_no""",
+                                                    {'warehouse': row.t_warehouse,'item_code': row.item_code, 'batch_no':row.batch_no}, as_dict=True)
+                    
                     if batch_in_wh:
                         if batch_in_wh[0].actual_qty:
-                            frappe.throw(f" {row.t_warehouse} Warehouse has already stock in this item and this batch.")
+                            frappe.throw(f" {row.t_warehouse} Warehouse has already stock in this item {row.item_code} and this batch {batch_in_wh[0].batch_no}. Qty {batch_in_wh[0].actual_qty}")
 
 @frappe.whitelist()
 def get_customer_rec_account(customer, company):
