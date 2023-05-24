@@ -237,8 +237,9 @@ def get_unallocated_payment_not_in_ageing(company, employee, s_currency, parent)
 
 @frappe.whitelist()
 def get_not_due_amount(company, customer, employee, s_currency, posting_date):
-	not_due_amount = frappe.db.sql(""" SELECT IFNULL(SUM(outstanding_amount),0)no_due FROM `tabSales Invoice`
-								WHERE outstanding_amount != 0 and currency = %(currency)s and customer = %(customer)s and company = %(company)s 
-								and employee = %(employee)s and docstatus=1 and DATEDIFF(CURDATE(),due_date) < 0 and posting_date <= %(posting_date)s """,
-								{'customer': customer, 'employee':employee,'company':company,'currency':s_currency,'posting_date':posting_date}, as_dict=True)
+	not_due_amount = frappe.db.sql(""" SELECT ifnull(IF ((SELECT account_currency from `tabAccount` where name = debit_to) = currency, 
+										SUM(outstanding_amount), SUM(outstanding_amount/conversion_rate)), 0)no_due FROM `tabSales Invoice`
+										WHERE outstanding_amount != 0 and currency = %(currency)s and customer = %(customer)s and company = %(company)s 
+										and employee = %(employee)s and docstatus=1 and DATEDIFF(CURDATE(),due_date) < 0 and posting_date <= %(posting_date)s """,
+										{'customer': customer, 'employee':employee,'company':company,'currency':s_currency,'posting_date':posting_date}, as_dict=True)
 	return not_due_amount;
