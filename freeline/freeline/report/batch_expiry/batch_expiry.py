@@ -35,6 +35,8 @@ def get_data(filters):
 		order by conversion_factor desc limit 1)highest_uom_factor,
 		round((led.actual_qty/ (SELECT conversion_factor FROM `tabUOM Conversion Detail` um 
 		where um.parent = b.item order by conversion_factor desc limit 1)), 2) as qty_in_huom,
+		round((b.batch_qty/ (SELECT um.conversion_factor FROM `tabUOM Conversion Detail` um 
+		where um.parent = b.item order by conversion_factor desc limit 1)), 2)hiuom_batch_qty,
 		(select GROUP_CONCAT(supplier) from `tabItem Supplier` where `tabItem Supplier`.parent = b.item) as supplier
 		FROM `tabBatch` b,
 		(select sle.company,sle.batch_no,sle.item_code,sle.warehouse,sum(sle.actual_qty)actual_qty,
@@ -78,10 +80,10 @@ def get_columns():
 			"width": 140,
 		},
 		{
-			"label": _("Batch Qty"),
-			"fieldname": "batch_qty",
+			"label": _("Batch Qty HiUOM"),
+			"fieldname": "hiuom_batch_qty",
 			"fieldtype": "Float",
-			"width": 120,
+			"width": 150,
 		},
 		{
 			"label": _("Stock UOM"),

@@ -60,6 +60,7 @@ def get_data(filters):
 		(SELECT GROUP_CONCAT(parent) FROM `tabSales Person` sp where sp.employee = inv.employee)sales_team,
 		(SELECT weight_per_unit FROM `tabItem` where name = inv_item.item_code)weight_per_unit,
 		(SELECT collation FROM `tabItem` where name = inv_item.item_code)collation,inv.branch,
+		(SELECT branch_id FROM `tabBranch` br where br.name = inv.customer_branch)branch_id,
 		(SELECT uom FROM `tabUOM Conversion Detail` um where um.parent = inv_item.item_code order by conversion_factor desc limit 1)highest_uom,
 		(SELECT conversion_factor FROM `tabUOM Conversion Detail` um where um.parent = inv_item.item_code 
 		order by conversion_factor desc limit 1)highest_uom_factor,
@@ -170,18 +171,18 @@ def get_columns():
 			"options": "Customer Group",
 			"width": 130,
 		},
-		# {
-		# 	"label": _("Branch ID"),
-		# 	"fieldname": "branch_id",
-		# 	"fieldtype": "Data",
-		# 	"width": 100,
-		# },
 		{
-			"label": _("Branch"),
-			"fieldname": "branch",
+			"label": _("Branch ID"),
+			"fieldname": "branch_id",
 			"fieldtype": "Data",
-			"width": 130,
+			"width": 100,
 		},
+		# {
+		# 	"label": _("Branch"),
+		# 	"fieldname": "branch",
+		# 	"fieldtype": "Data",
+		# 	"width": 130,
+		# },
 		{
 			"label": _("Receivable Account"),
 			"fieldname": "receivable_account",
