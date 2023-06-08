@@ -117,6 +117,9 @@ doc_events = {
     "Stock Entry":{
         "validate": "freeline.freeline.globalapi.validate_same_batch",
     },
+    "Sales Order":{
+        "before_submit": "freeline.freeline.globalapi.validate_picker_warehouse_mandatory",
+    },
 }
 
 

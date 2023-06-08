@@ -786,6 +786,15 @@ def get_customer_rec_account(customer, company):
         else:
             return 0
 
+def validate_picker_warehouse_mandatory(self, arg):
+    
+    validate_enable = frappe.get_doc('Tiejan Internal Settings')
+    
+    if validate_enable.picker_warehouse_mandatory:
+        if not self.picker_warehouse:
+            frappe.throw("Picker Warehouse is mandatory.")
+
+
 # bench execute freeline.freeline.globalapi.generate_rebate_process
 
 # bench execute freeline.freeline.globalapi.generate_shelf_rentals

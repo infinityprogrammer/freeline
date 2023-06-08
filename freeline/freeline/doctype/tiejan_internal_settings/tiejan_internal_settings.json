@@ -6,7 +6,8 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "cash_van_batch_validation"
+  "cash_van_batch_validation",
+  "picker_warehouse_mandatory"
  ],
  "fields": [
   {
@@ -14,12 +15,18 @@
    "fieldname": "cash_van_batch_validation",
    "fieldtype": "Check",
    "label": "Cash Van Batch Validation"
+  },
+  {
+   "default": "0",
+   "fieldname": "picker_warehouse_mandatory",
+   "fieldtype": "Check",
+   "label": "Picker Warehouse Mandatory"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-05-21 12:25:34.508064",
+ "modified": "2023-06-08 10:54:50.716918",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Tiejan Internal Settings",
