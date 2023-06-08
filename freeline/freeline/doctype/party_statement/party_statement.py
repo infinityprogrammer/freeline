@@ -181,13 +181,21 @@ def get_dist_employee(customer,from_date,to_date,company):
 
 @frappe.whitelist()
 def sales_rep_statement_details(company,from_date,to_date,customer,employee,s_currency):
-	statement_details = frappe.db.sql("""SELECT gl.posting_date,party_type,party,round(debit_in_account_currency/inv.conversion_rate,2)debit_in_account_currency,
-                                   				round(credit_in_account_currency/inv.conversion_rate,2)credit_in_account_currency,voucher_no,voucher_type,
-												against_voucher_type,against_voucher,employee,employee_name,gl.remarks 
-												FROM `tabGL Entry` gl LEFT JOIN `tabSales Invoice` inv ON inv.name = gl.against_voucher
-												where party_type = 'Customer' and party = %(customer)s and is_cancelled = 0 and gl.company = %(company)s AND inv.currency = %(s_currency)s
-												and gl.posting_date between %(from_date)s and %(to_date)s and employee = %(employee)s order by 1""",
-                                  				{'customer': customer,'company':company,'from_date':from_date,'to_date':to_date,'employee':employee,'s_currency':s_currency}, as_dict=True)
+	statement_details = frappe.db.sql("""SELECT gl.posting_date,party_type,party,round(debit_in_account_currency/inv.conversion_rate,2)debit_in_account_currency1,
+										round(credit_in_account_currency/inv.conversion_rate,2)credit_in_account_currency1,voucher_no,voucher_type,
+										(CASE
+											WHEN (SELECT acc.account_currency FROM `tabAccount` acc WHERE acc.name = inv.debit_to) = inv.currency THEN debit_in_account_currency
+											ELSE debit_in_account_currency / inv.conversion_rate
+										END) AS debit_in_account_currency,
+										(CASE
+											WHEN (SELECT acc.account_currency FROM `tabAccount` acc WHERE acc.name = inv.debit_to) = inv.currency THEN credit_in_account_currency
+											ELSE credit_in_account_currency / inv.conversion_rate
+										END) AS credit_in_account_currency,
+										against_voucher_type,against_voucher,employee,employee_name,gl.remarks 
+										FROM `tabGL Entry` gl LEFT JOIN `tabSales Invoice` inv ON inv.name = gl.against_voucher
+										where party_type = 'Customer' and party = %(customer)s and is_cancelled = 0 and gl.company = %(company)s AND inv.currency = %(s_currency)s
+										and gl.posting_date between %(from_date)s and %(to_date)s and employee = %(employee)s order by 1""",
+										{'customer': customer,'company':company,'from_date':from_date,'to_date':to_date,'employee':employee,'s_currency':s_currency}, as_dict=True)
 	return statement_details;
 
 @frappe.whitelist()

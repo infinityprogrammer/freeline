@@ -11,7 +11,7 @@ frappe.query_reports["Carton Stock Summary"] = {
 			"fieldtype": "Select",
 			"width": "80",
 			"reqd": 1,
-			"options": ["Warehouse", "Company"],
+			"options": ["Warehouse"],
 			"default": "Warehouse",
 		},
 		{

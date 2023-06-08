@@ -112,7 +112,7 @@ def get_columns():
 			"label": _("Final Collection (USD)"),
 			"fieldname": "fin_amt",
 			"fieldtype": "Float",
-			"width": 130,
+			"width": 170,
 		}
 	]
 
@@ -170,6 +170,6 @@ def get_data(filters):
 		where pe.name = ref.parent and ref.reference_name = sit.parent and sit.parent = inv.name
 		and pe.docstatus = 1
 		and pe.payment_type = 'Receive'
-		and ref.reference_doctype = 'Sales Invoice' and pe.posting_date = curdate() {0}""".format(conditions),filters,as_dict=1)
+		and ref.reference_doctype = 'Sales Invoice' {0}""".format(conditions),filters,as_dict=1)
 
 	return data

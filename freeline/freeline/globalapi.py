@@ -759,7 +759,7 @@ def validate_same_batch(self, arg):
         return
 
     if self.stock_entry_type == 'Material Transfer':
-        van_warehouse = frappe.db.get_list('Warehouse', filters={'name': ['like', '%Stores%']}, pluck='name')
+        van_warehouse = frappe.db.get_list('Warehouse', filters={'name': ['like', '%Cash Van%']}, pluck='name')
         for row in self.items:
             if row.batch_no:
                 if row.t_warehouse in van_warehouse:
