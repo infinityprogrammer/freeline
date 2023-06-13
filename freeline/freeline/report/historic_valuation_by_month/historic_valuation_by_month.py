@@ -25,13 +25,13 @@ def get_columns(filters):
 			"fieldname": "item_code",
 			"fieldtype": "Link",
 			"options": "Item",
-			"width": 140,
+			"width": 170,
 		},
 		{
 			"label": _("Item Name"),
 			"fieldname": "item_name",
 			"fieldtype": "Data",
-			"width": 140,
+			"width": 300,
 		},
 		{
 			"label": _("Item Group"),
@@ -49,16 +49,22 @@ def get_columns(filters):
 		},
 		{
 			"label": _("Month"),
-			"fieldname": "month1",
-			"fieldtype": "Int",
+			"fieldname": "my",
+			"fieldtype": "Data",
 			"width": 100,
 		},
-		{
-			"label": _("Year"),
-			"fieldname": "year1",
-			"fieldtype": "Int",
-			"width": 100,
-		},
+		# {
+		# 	"label": _("Month"),
+		# 	"fieldname": "month1",
+		# 	"fieldtype": "Int",
+		# 	"width": 100,
+		# },
+		# {
+		# 	"label": _("Year"),
+		# 	"fieldname": "year1",
+		# 	"fieldtype": "Int",
+		# 	"width": 100,
+		# },
 		{
 			"label": _("Valuation Rate"),
 			"fieldname": "valuation_rate",
@@ -86,7 +92,7 @@ def get_data(filters):
 
 	data = frappe.db.sql(
 		"""
-		SELECT item_code, month1,year1,valuation_rate,
+		SELECT item_code, concat(month1, '-',year1)my,month1,year1,valuation_rate,
 		(select item_name from `tabItem` where name = a1.item_code)item_name,
 		(select item_group from `tabItem` where name = a1.item_code)item_group,
 		(select brand from `tabItem` where name = a1.item_code)brand

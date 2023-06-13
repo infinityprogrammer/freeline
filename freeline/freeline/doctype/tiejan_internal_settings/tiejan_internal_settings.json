@@ -7,7 +7,9 @@
  "engine": "InnoDB",
  "field_order": [
   "cash_van_batch_validation",
-  "picker_warehouse_mandatory"
+  "picker_warehouse_mandatory",
+  "column_break_3",
+  "invoice_round_off"
  ],
  "fields": [
   {
@@ -21,12 +23,22 @@
    "fieldname": "picker_warehouse_mandatory",
    "fieldtype": "Check",
    "label": "Picker Warehouse Mandatory"
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "invoice_round_off",
+   "fieldtype": "Check",
+   "label": "Invoice Round Off"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-06-08 10:54:50.716918",
+ "modified": "2023-06-13 13:46:00.763709",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Tiejan Internal Settings",

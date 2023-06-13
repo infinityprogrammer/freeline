@@ -28,7 +28,7 @@ def get_data(filters):
 		"""
 		SELECT item_code, uom, item_name, brand,price_list_rate,currency,price_list,
 		concat('<b>', round((price_list_rate/(SELECT conversion_factor FROM `tabUOM Conversion Detail` um where um.parent = p.item_code and uom = p.uom) * (SELECT conversion_factor FROM `tabUOM Conversion Detail` um where um.parent = p.item_code 
-		order by conversion_factor desc limit 1)), 3),'</b>')price_in_hiuom,
+		order by conversion_factor desc limit 1)), 2),'</b>')price_in_hiuom,
 		(SELECT uom FROM `tabUOM Conversion Detail` um where um.parent = p.item_code order by conversion_factor desc limit 1)highest_uom,
 		(SELECT conversion_factor FROM `tabUOM Conversion Detail` um where um.parent = p.item_code 
 		order by conversion_factor desc limit 1)highest_uom_factor,
