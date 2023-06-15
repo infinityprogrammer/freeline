@@ -92,6 +92,12 @@ def get_columns(filters):
 			"width": 150,
 		},
 		{
+			"label": _("Type"),
+			"fieldname": "material_request_type",
+			"fieldtype": "Data",
+			"width": 100,
+		},
+		{
 			"label": _("Collation"),
 			"fieldname": "collation",
 			"fieldtype": "Data",
@@ -133,7 +139,7 @@ def get_data(filters):
 	data = frappe.db.sql(
 		"""
 		SELECT r.parent as item_code,it.item_name,it.item_group, r.warehouse, warehouse_reorder_level, 
-		warehouse_reorder_qty,actual_qty as actual_qty_in_wh,it.brand, it.collation, 
+		warehouse_reorder_qty,actual_qty as actual_qty_in_wh,it.brand, it.collation, r.material_request_type,
 		(SELECT group_concat(bc.barcode) FROM `tabItem Barcode` bc where bc.parent = it.name)barcode,
 		(SELECT branch FROM `tabWarehouse` where name = r.warehouse)branch,
 		(SELECT uom FROM `tabUOM Conversion Detail` um where um.parent = it.name order by conversion_factor desc limit 1)highest_uom,
