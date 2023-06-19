@@ -274,5 +274,6 @@ jenv = {
         "get_unallocated_payment:freeline.freeline.doctype.party_statement.party_statement.get_unallocated_payment",
         "get_unallocated_payment_not_in_ageing:freeline.freeline.doctype.party_statement.party_statement.get_unallocated_payment_not_in_ageing",
         "get_not_due_amount:freeline.freeline.doctype.party_statement.party_statement.get_not_due_amount",
+        "get_uom_qty_sum_order:freeline.freeline.globalapi.get_uom_qty_sum_order",
     ]
 }

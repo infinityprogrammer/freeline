@@ -732,6 +732,13 @@ def get_uom_qty_sum_inv(doc_name):
                                     {'doc_name': doc_name}, as_dict=True)
     return uom_sum
 
+def get_uom_qty_sum_order(doc_name):
+    
+    uom_sum = frappe.db.sql(""" SELECT uom,sum(qty)qty FROM `tabSales Order Item` where parent = %(doc_name)s group by uom """,
+                                    {'doc_name': doc_name}, as_dict=True)
+    return uom_sum
+
+
 def get_shelf_rent_brand_sale(from_date, to_date, customer, employee, company, brand, is_all_brand):
     brand_cond = ""
     if is_all_brand:

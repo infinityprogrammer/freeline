@@ -74,7 +74,7 @@ def get_data(filters):
 		(SELECT parent_item_group FROM `tabItem Group` 
 		WHERE name = (SELECT parent_item_group FROM `tabItem Group` ig where ig.name = inv_item.item_group))item_group_parent_2
 		FROM `tabSales Invoice` inv, `tabSales Invoice Item` inv_item
-		where inv.name = inv_item.parent and inv.docstatus = 1 and inv.company = %(company)s {0} and inv.posting_date between %(from_date)s and %(to_date)s
+		where inv.name = inv_item.parent and inv.docstatus = 1 and inv.company in %(company)s {0} and inv.posting_date between %(from_date)s and %(to_date)s
 		order by posting_date desc""".format(condition),filters,as_dict=1)
 
 	return data

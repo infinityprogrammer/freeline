@@ -29,6 +29,8 @@ def get_data(filters):
 		SELECT led.company,b.batch_id, b.item, b.item_name,b.manufacturing_date,
 		b.batch_qty, b.stock_uom,b.expiry_date,led.warehouse,led.actual_qty,
 		(select it.brand from `tabItem` it where it.name = b.item)brand,
+		(select it.item_arabic_name from `tabItem` it where it.name = b.item)item_arabic_name,
+		(SELECT branch_id FROM `tabWarehouse` wh where wh.name = led.warehouse)branch_id,
 		datediff(b.expiry_date, curdate())day_dif,stock_value,
 		(SELECT uom FROM `tabUOM Conversion Detail` um where um.parent = b.item order by conversion_factor desc limit 1)highest_uom,
 		(SELECT conversion_factor FROM `tabUOM Conversion Detail` um where um.parent = b.item 
@@ -62,6 +64,12 @@ def get_columns():
 		{
 			"label": _("Item Name"),
 			"fieldname": "item_name",
+			"fieldtype": "Data",
+			"width": 140,
+		},
+		{
+			"label": _("Item Arabic Name"),
+			"fieldname": "item_arabic_name",
 			"fieldtype": "Data",
 			"width": 140,
 		},
@@ -110,6 +118,12 @@ def get_columns():
 			"fieldtype": "Link",
 			"options": "Warehouse",
 			"width": 150,
+		},
+		{
+			"label": _("Branch ID"),
+			"fieldname": "branch_id",
+			"fieldtype": "Data",
+			"width": 120,
 		},
 		{
 			"label": _("Actual Qty WH"),
