@@ -10,7 +10,7 @@ from frappe import _
 def execute(filters=None):
 	columns, data = [], []
 
-	if not filters.sales_person:
+	if not filters.sales_person or not filters.company:
 		return
 
 	columns = get_columns(filters)
@@ -86,6 +86,30 @@ def get_columns(filters):
 			"options": "Customer Group",
 			"width": 140,
 		},
+		{
+			"label": _("Stock In WH Stock UOM"),
+			"fieldname": "actual_qty",
+			"fieldtype": "Float",
+			"width": 140,
+		},
+		{
+			"label": _("Hi UOM"),
+			"fieldname": "highest_uom",
+			"fieldtype": "Data",
+			"width": 140,
+		},
+		{
+			"label": _("Hi UOM Factor"),
+			"fieldname": "highest_uom_factor",
+			"fieldtype": "Data",
+			"width": 140,
+		},
+		{
+			"label": _("Qty in Hi UOM"),
+			"fieldname": "qty_highest_uom",
+			"fieldtype": "Data",
+			"width": 140,
+		},
 	]
 
 def get_data(filters):
@@ -112,7 +136,15 @@ def get_data(filters):
 			(SELECT customer_name from `tabCustomer` where name = customer)customer_name,
 			(SELECT customer_group from `tabCustomer` where name = customer)customer_group,
 			(SELECT item_name from `tabItem` where name = a2.item_code)item_name,
-			(SELECT brand from `tabItem` where name = a2.item_code)brand
+			(SELECT brand from `tabItem` where name = a2.item_code)brand,
+			(SELECT sum(actual_qty) FROM `tabBin` bin where bin.item_code = a2.item_code and bin.warehouse in 
+			(select name from `tabWarehouse` wh where wh.company = %(company)s))actual_qty,
+			(SELECT uom FROM `tabUOM Conversion Detail` um where um.parent = a2.item_code order by conversion_factor desc limit 1)highest_uom,
+			(SELECT conversion_factor FROM `tabUOM Conversion Detail` um where um.parent = a2.item_code 
+			order by conversion_factor desc limit 1)highest_uom_factor,
+			ifnull(round(((SELECT sum(actual_qty) FROM `tabBin` bin where bin.item_code = a2.item_code and bin.warehouse in 
+			(select name from `tabWarehouse` wh where wh.company = %(company)s))/(SELECT conversion_factor FROM `tabUOM Conversion Detail` um where um.parent = a2.item_code 
+			order by conversion_factor desc limit 1)), 2), 0)qty_highest_uom
 			FROM (
 			WITH RECURSIVE dates AS (
 			SELECT DATE('2022-05-01') AS date
@@ -128,7 +160,7 @@ def get_data(filters):
 				SELECT DISTINCT a.employee
 				FROM `tabSales Invoice` a
 				INNER JOIN `tabSales Invoice Item` b ON a.name = b.parent
-				WHERE a.docstatus = 1
+				WHERE a.docstatus = 1 and a.company = %(company)s
 			) emp where it.is_stock_item = 1
 			)
 			SELECT cross_join.employee, cross_join.item_code, d1.year1, d1.month1

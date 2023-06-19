@@ -5,6 +5,13 @@
 frappe.query_reports["Item Sales Coverage"] = {
 	"filters": [
 		{
+			"fieldname": "company",
+			"label": __("Company"),
+			"fieldtype": "Link",
+			"options": "Company",
+			"width" : 120
+		},
+		{
 			"fieldname": "sales_person",
 			"label": __("Sales Person"),
 			"fieldtype": "MultiSelectList",
