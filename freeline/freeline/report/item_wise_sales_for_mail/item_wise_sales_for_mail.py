@@ -57,7 +57,7 @@ def get_data(filters):
 		(SELECT group_concat(supplier_part_no) FROM `tabItem Supplier` supp where supp.parent = inv_item.item_code) as supplier_no,
 		(SELECT GROUP_CONCAT(barcode) FROM `tabItem Barcode` tb where tb.parent = inv_item.item_code) as barcode,
 		(SELECT GROUP_CONCAT(name) FROM `tabSales Person` sp where sp.employee = inv.employee)sales_person,
-		(SELECT GROUP_CONCAT(parent) FROM `tabSales Person` sp where sp.employee = inv.employee)sales_team,
+		(SELECT GROUP_CONCAT(parent_sales_person) FROM `tabSales Person` sp where sp.employee = inv.employee)sales_team,
 		(SELECT weight_per_unit FROM `tabItem` where name = inv_item.item_code)weight_per_unit,
 		(SELECT collation FROM `tabItem` where name = inv_item.item_code)collation,inv.branch,
 		(SELECT branch_id FROM `tabBranch` br where br.name = inv.customer_branch)branch_id,

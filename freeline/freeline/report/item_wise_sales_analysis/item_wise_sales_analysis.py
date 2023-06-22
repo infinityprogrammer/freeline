@@ -622,7 +622,7 @@ def get_items(filters, additional_query_columns):
 			(SELECT collation FROM `tabItem` where `tabItem`.name = `tabSales Invoice Item`.item_code) as collation,
 			(SELECT ((`tabSales Invoice Item`.`amount`/ `tabSales Invoice`.`total`))* `tabSales Invoice`.discount_amount ) as invoice_discount_amount,
 			(select GROUP_CONCAT(sales_person) from `tabSales Team` where `tabSales Team`.parent = `tabSales Invoice`.name) as sales_person,
-			(SELECT parent FROM `tabSales Person` sp where 
+			(SELECT parent_sales_person FROM `tabSales Person` sp where 
 			sp.sales_person_name = (select GROUP_CONCAT(sales_person) from `tabSales Team` where `tabSales Team`.parent = `tabSales Invoice`.name)) as sales_team,
 			(SELECT GROUP_CONCAT(barcode) FROM `tabItem Barcode` where `tabItem Barcode`.parent = `tabSales Invoice Item`.item_code) as barcode,
 			(SELECT conversion_factor FROM `tabUOM Conversion Detail` uf where uf.parent = `tabSales Invoice Item`.item_code and uf.uom = 'Carton') as carton_factor,
