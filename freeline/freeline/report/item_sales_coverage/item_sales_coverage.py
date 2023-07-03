@@ -161,7 +161,7 @@ def get_data(filters):
 				FROM `tabSales Invoice` a
 				INNER JOIN `tabSales Invoice Item` b ON a.name = b.parent
 				WHERE a.docstatus = 1 and a.company = %(company)s
-			) emp where it.is_stock_item = 1
+			) emp where it.is_stock_item = 1 and it.disabled = 0
 			)
 			SELECT cross_join.employee, cross_join.item_code, d1.year1, d1.month1
 			FROM cross_join
