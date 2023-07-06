@@ -147,11 +147,11 @@ def get_data(filters):
 			order by conversion_factor desc limit 1)), 2), 0)qty_highest_uom
 			FROM (
 			WITH RECURSIVE dates AS (
-			SELECT DATE('2022-05-01') AS date
+			SELECT DATE(%(from_date)s) AS date
 			UNION ALL
 			SELECT DATE_ADD(date, INTERVAL 1 MONTH)
 			FROM dates
-			WHERE DATE_ADD(date, INTERVAL 1 MONTH) <= curdate()
+			WHERE DATE_ADD(date, INTERVAL 1 MONTH) <= %(to_date)s
 			),
 			cross_join AS (
 			SELECT it.item_code, emp.employee

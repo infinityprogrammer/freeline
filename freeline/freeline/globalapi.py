@@ -585,9 +585,10 @@ def generate_shelf_rentals():
     # month_first_day = '2024-01-01'
     
 
-    shelf_rental_entries = frappe.db.sql("""SELECT a.name,a.company,a.currency,rent_type,description,from_date,to_date,a.amount,a.brand,a.sales_rep,a.customer,
+    shelf_rental_entries = frappe.db.sql("""SELECT a.name,a.company,a.currency,rent_type,description,from_date,to_date,
+                                            a.amount,a.brand,a.sales_rep,a.customer,
                                             b.name as detl_name,is_generated,b.date,b.idx,a.shelf_item, a.initial_target, 
-                                            a.target_on_all_brand, a.brand
+                                            a.target_on_all_brand, a.brand, a.receivable_account
                                             FROM `tabShelf Rental Agreement` a, `tabRental Invoices` b
                                             where a.name = b.parent and b.date = %(date)s
                                             and a.docstatus=1 
@@ -596,7 +597,7 @@ def generate_shelf_rentals():
 
     for entry in shelf_rental_entries:
 
-        validate_brand_sale = get_shelf_rent_brand_sale(month_first_day, last_month_last_day, entry.customer, entry.sales_rep, entry.company, entry.brand, entry.target_on_all_brand)
+        validate_brand_sale = get_shelf_rent_brand_sale(month_first_day, last_month_last_day, entry.customer, entry.sales_rep, entry.company, entry.brand, entry.target_on_all_brand, entry.currency)
         
 
         if entry.initial_target:
@@ -622,6 +623,9 @@ def generate_shelf_rentals():
             si.doctype = 'Sales Invoice'
             si.disable_rounded_total = 1
             si.shelf_rent_ref = entry.name
+
+            if entry.receivable_account:
+                si.debit_to = entry.receivable_account
 
             cost_c = frappe.db.get_value('Company', entry.company, 'cost_center')
             si.cost_center = cost_c
@@ -739,7 +743,7 @@ def get_uom_qty_sum_order(doc_name):
     return uom_sum
 
 
-def get_shelf_rent_brand_sale(from_date, to_date, customer, employee, company, brand, is_all_brand):
+def get_shelf_rent_brand_sale(from_date, to_date, customer, employee, company, brand, is_all_brand, currency):
     brand_cond = ""
     if is_all_brand:
         brand_cond = " and item.brand is not null and item.brand <> '' "
@@ -750,7 +754,7 @@ def get_shelf_rent_brand_sale(from_date, to_date, customer, employee, company, b
                                     SELECT inv.name,posting_date,item_code,item.brand,item.base_net_amount 
                                     FROM `tabSales Invoice` inv, `tabSales Invoice Item` item
                                     where inv.name = item.parent {0}
-                                    and inv.posting_date between %(from_date)s and %(to_date)s and company = %(company)s 
+                                    and inv.posting_date between %(from_date)s and %(to_date)s and company = %(company)s
                                     and inv.docstatus = 1 and inv.employee = %(employee)s and inv.customer = %(customer)s)a1""".format(brand_cond),
                                     {'employee': employee,'from_date':from_date,'to_date':to_date,'company':company,'customer':customer,'brand':brand}, as_dict=True)
     

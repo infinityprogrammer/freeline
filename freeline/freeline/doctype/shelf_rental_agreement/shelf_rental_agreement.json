@@ -11,6 +11,7 @@
   "company",
   "customer",
   "customer_name",
+  "receivable_account",
   "from_date",
   "to_date",
   "rent_type",
@@ -55,8 +56,7 @@
    "fieldname": "currency",
    "fieldtype": "Link",
    "label": "Currency",
-   "options": "Currency",
-   "read_only": 1
+   "options": "Currency"
   },
   {
    "fieldname": "rent_type",
@@ -169,6 +169,7 @@
    "fieldname": "total_amount",
    "fieldtype": "Currency",
    "label": "Total Amount",
+   "options": "currency",
    "read_only": 1
   },
   {
@@ -195,7 +196,8 @@
    "allow_on_submit": 1,
    "fieldname": "initial_target",
    "fieldtype": "Currency",
-   "label": "Initial Target"
+   "label": "Initial Target",
+   "options": "currency"
   },
   {
    "allow_on_submit": 1,
@@ -203,12 +205,18 @@
    "fieldname": "target_on_all_brand",
    "fieldtype": "Check",
    "label": "Target On All Brand"
+  },
+  {
+   "fieldname": "receivable_account",
+   "fieldtype": "Link",
+   "label": "Receivable Account",
+   "options": "Account"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-05-12 11:21:31.106109",
+ "modified": "2023-07-05 14:34:35.266268",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Shelf Rental Agreement",

@@ -15,6 +15,35 @@ frappe.ui.form.on('Shelf Rental Agreement', {
 
 	},
 
+	customer: function(frm) {
+
+		frm.call({
+			method: "erpnext.accounts.party.get_party_account",
+			args: {
+				party_type: 'Customer',
+				party: frm.doc.customer,
+				company: frm.doc.company
+			},
+			freeze: true,
+			freeze_message: "Fetching Account...",
+			callback: function(r) {
+				if(r.message){
+					console.log(r)
+					frm.set_value('receivable_account', r.message)
+					let acc_currecy = frappe.db.get_value('Account', r.message, 'account_currency', (r) => {
+						frm.set_value('currency', r.account_currency)
+					})
+					
+
+				}else{
+					frappe.msgprint(__('No Account found'));
+				}
+				frm.refresh_field('receivable_account');
+				frm.refresh_field('currency');
+			}
+		});
+	},
+
 	validate: function(frm) {
 
 		let frm_date = frm.doc.from_date

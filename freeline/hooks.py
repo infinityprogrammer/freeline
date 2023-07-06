@@ -247,7 +247,9 @@ fixtures = [
                 "Purchase Order-brand",
                 "Sales Invoice-payment_receipt",
                 "Delivery Note-employee_id",
-                "Delivery Note-employee_name"
+                "Delivery Note-employee_name",
+                "Sales Order-total_weight",
+                "Sales Invoice-total_weight"
             ]
         ]
     ]},
