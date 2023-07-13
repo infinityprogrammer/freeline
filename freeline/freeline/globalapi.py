@@ -475,6 +475,9 @@ def generate_rebate_process():
                 si.rebate_type = cust.rebate_type
                 si.rebate_duration = cust.rebate_duration
 
+                if cust.receivable_account:
+                    si.debit_to = cust.receivable_account
+
                 cost_c = frappe.db.get_value('Company', cust.company, 'cost_center')
                 si.cost_center = cost_c
 
@@ -489,8 +492,7 @@ def generate_rebate_process():
                                         "item_code" : cust.rebate_item if cust.rebate_item else 'REBATE',
                                         "description" : 'Brand : {0} - Period : {1} and {2} - Total Brand sale : {3} - Rebate Percentage : {4} - Duration : {5}'.format(rebate.brand,month_first_day,month_last_day,brand_obj[0].amount,brand_obj[0].rebate_percentage,cust.rebate_duration),
                                         "qty" : -1,
-                                        "rate" : rebate.rebate_amt*-1,
-                                        "amount" : rebate.rebate_amt,
+                                        "rate" : convert_to_iqd(rebate.rebate_amt * -1) if cust.currency == 'IQD' else rebate.rebate_amt*-1,
                                         "cost_center" :cost_c,
                                         "brand" :rebate.brand,
                                     })
@@ -502,11 +504,10 @@ def generate_rebate_process():
                 if slab_val:
                     total_rebate_val += (net_sale*slab_val[0].extra_percentage/100)
                     si.append("items",{
-                                        "item_code" : 'REBATE',
+                                        "item_code" : cust.rebate_item if cust.rebate_item else 'REBATE',
                                         "description" : 'Rebate for exceed slab period {0} and {1}. Total brand sale {2}'.format(month_first_day,month_last_day,net_sale),
                                         "qty" : -1,
-                                        "rate" : (net_sale*slab_val[0].extra_percentage/100),
-                                        "amount" : net_sale*slab_val[0].extra_percentage/100,
+                                        "rate" : convert_to_iqd((net_sale*slab_val[0].extra_percentage/100)) if cust.currency == 'IQD' else (net_sale*slab_val[0].extra_percentage/100),
                                         "cost_center" :cost_c
                                     })
                 sp = get_sales_person_by_rep(cust.sales_rep)
@@ -519,8 +520,18 @@ def generate_rebate_process():
                 si.save(ignore_permissions=True)
                 # si.submit()
                 # print(f"{si.name} - {si.posting_date}")
-                update_voucher_no(si.name, month_last_day, cust.name, total_rebate_val)
+                update_voucher_no(si.name, month_last_day, cust.name, convert_to_iqd(total_rebate_val))
                 update_status_rebate(month_last_day,cust.name)
+
+
+def convert_to_iqd(amount):
+    
+    exchange_rate = frappe.db.get_value('Currency Exchange', filters={'from_currency': 'USD', 'to_currency': 'IQD'}, fieldname='exchange_rate', order_by='date DESC')
+    
+    if exchange_rate:
+        return amount * exchange_rate
+    else:
+        return 1
 
 def update_status_rebate(month_last_day, reabte_ref):
     get_idx_qry = frappe.db.sql(""" SELECT idx from `tabRental Invoices` where parenttype = 'Rebate Process'

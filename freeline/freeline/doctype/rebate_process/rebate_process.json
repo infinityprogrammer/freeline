@@ -11,6 +11,7 @@
   "company",
   "customer",
   "customer_name",
+  "receivable_account",
   "sales_rep",
   "employee_name",
   "rebate_duration",
@@ -53,9 +54,9 @@
    "fieldtype": "Column Break"
   },
   {
-   "fetch_from": "company.default_currency",
+   "fetch_from": "receivable_account.account_currency",
    "fieldname": "currency",
-   "fieldtype": "Read Only",
+   "fieldtype": "Link",
    "label": "Currency",
    "options": "Currency"
   },
@@ -137,6 +138,7 @@
   {
    "allow_on_submit": 1,
    "default": "0",
+   "description": "The initial target can only be defined in USD, even if the rebate is in IQD.",
    "fieldname": "initial_target",
    "fieldtype": "Currency",
    "label": "Initial Target",
@@ -203,12 +205,18 @@
    "fieldtype": "Link",
    "label": "Rebate Item",
    "options": "Item"
+  },
+  {
+   "fieldname": "receivable_account",
+   "fieldtype": "Link",
+   "label": "Receivable Account",
+   "options": "Account"
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-05-04 11:24:16.069723",
+ "modified": "2023-07-13 09:56:16.844358",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Rebate Process",

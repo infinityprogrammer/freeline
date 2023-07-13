@@ -249,7 +249,8 @@ fixtures = [
                 "Delivery Note-employee_id",
                 "Delivery Note-employee_name",
                 "Sales Order-total_weight",
-                "Sales Invoice-total_weight"
+                "Sales Invoice-total_weight",
+                "Customer-is_sister_company_customer"
             ]
         ]
     ]},
