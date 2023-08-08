@@ -382,6 +382,20 @@ def get_item_valuation_rate(item_code):
         item_val_rate = item_val[0].valuation_rate
         return item_val_rate
 
+def get_item_uom_conversion_factor(item_code, uom):
+    
+    item_conv = frappe.db.sql(""" SELECT conversion_factor FROM `tabUOM Conversion Detail` 
+                             where parent = %(item)s and uom = %(uom)s """,{'item': item_code, 'uom':uom}, as_dict=True)
+    if item_conv:
+        if item_conv[0].conversion_factor:
+            factor = item_conv[0].conversion_factor
+            return factor
+        else:
+            return None
+    else:
+        return None
+
+
 @frappe.whitelist()
 def get_trade_price_list():
     changed_price = []
@@ -391,8 +405,17 @@ def get_trade_price_list():
     for i in price_lists:
         val_rate = get_item_valuation_rate(i.item_code)
         if val_rate and val_rate != i.price_list_rate:
-            frappe.db.set_value('Item Price', i.name, 'price_list_rate', val_rate)
-            i['val_rate'] = val_rate
+
+            stock_uom = frappe.db.get_value('Item', i.item_code, 'stock_uom')
+            if stock_uom == i.uom:
+                frappe.db.set_value('Item Price', i.name, 'price_list_rate', val_rate)
+                i['val_rate'] = val_rate
+            else:
+                conv_fact = get_item_uom_conversion_factor(i.item_code, i.uom)
+                if conv_fact:
+                    frappe.db.set_value('Item Price', i.name, 'price_list_rate', conv_fact*val_rate)
+                    i['val_rate'] = conv_fact*val_rate
+
             changed_price.append(i)
             doc = frappe.get_doc('Item Price', i.name)
             doc.add_comment('Comment', text='Price changed from {0} to {1}'.format(i.price_list_rate, val_rate))
@@ -430,13 +453,13 @@ def generate_rebate_process():
         prev_rebate = already_process_rebate(cust.customer,month_last_day,cust.rebate_type,cust.company,cust.sales_rep,cust.rebate_duration)
 
         if cust.rebate_duration == "Monthly":
-            net_sale = net_sale_in_period(cust.customer, month_first_day, month_last_day, cust.company, cust.sales_rep,cust.name,'Monthly')
+            net_sale = net_sale_in_period(cust.customer, month_first_day, month_last_day, cust.company, cust.sales_rep,cust.name,'Monthly', cust.currency)
 
         if cust.rebate_duration == "Quarterly":
             prevq = previous_quarter(month_last_day)
             month_first_day = prevq+datetime.timedelta(days=1)
 
-            net_sale = net_sale_in_period(cust.customer, month_first_day, month_last_day, cust.company, cust.sales_rep,cust.name, 'Quarterly')
+            net_sale = net_sale_in_period(cust.customer, month_first_day, month_last_day, cust.company, cust.sales_rep,cust.name, 'Quarterly', cust.currency)
 
         if flt(net_sale) == 0 or flt(net_sale) < cust.initial_target:
             
@@ -447,15 +470,15 @@ def generate_rebate_process():
         if not prev_rebate:
             
             rebate_val = frappe.db.sql(""" SELECT brand,sum(rebate_amt*-1)rebate_amt FROM (
-                                            SELECT inv.name,it.qty,it.rate,it.base_net_amount,it.brand,r.rebate_percentage,(it.base_net_amount*r.rebate_percentage/100)rebate_amt
+                                            SELECT inv.name,it.qty,it.rate,it.net_amount,it.brand,r.rebate_percentage,(it.net_amount*r.rebate_percentage/100)rebate_amt
                                             FROM `tabSales Invoice` inv, `tabSales Invoice Item` it, `tabRebate Definition` r,`tabRental Invoices` ri where 
                                             inv.name = it.parent and it.brand = r.brand and r.parent = ri.parent
                                             and inv.docstatus=1 and r.parent = %(rebate)s 
                                             and it.item_code not in (SELECT item.name FROM `tabItem` item where item.item_group in ('Rebate and Shelf Items'))
-                                            and employee = %(employee)s and customer = %(customer)s and inv.company = %(company)s
+                                            and employee = %(employee)s and customer = %(customer)s and inv.company = %(company)s and inv.currency = %(currency)s
                                             and posting_date between %(start_date)s and %(end_date)s and ri.date = %(end_date)s)a1
                                             group by brand HAVING sum(rebate_amt) > 0""",
-                                            {'employee': cust.sales_rep,'customer':cust.customer,'start_date':month_first_day,'end_date':month_last_day,'rebate':cust.name,'company':cust.company}, as_dict=True)
+                                            {'employee': cust.sales_rep,'customer':cust.customer,'start_date':month_first_day,'end_date':month_last_day,'rebate':cust.name,'company':cust.company, 'currency':cust.currency}, as_dict=True)
             if rebate_val:
                 
 
@@ -492,7 +515,7 @@ def generate_rebate_process():
                                         "item_code" : cust.rebate_item if cust.rebate_item else 'REBATE',
                                         "description" : 'Brand : {0} - Period : {1} and {2} - Total Brand sale : {3} - Rebate Percentage : {4} - Duration : {5}'.format(rebate.brand,month_first_day,month_last_day,brand_obj[0].amount,brand_obj[0].rebate_percentage,cust.rebate_duration),
                                         "qty" : -1,
-                                        "rate" : convert_to_iqd(rebate.rebate_amt * -1) if cust.currency == 'IQD' else rebate.rebate_amt*-1,
+                                        "rate" : rebate.rebate_amt * -1,
                                         "cost_center" :cost_c,
                                         "brand" :rebate.brand,
                                     })
@@ -507,7 +530,7 @@ def generate_rebate_process():
                                         "item_code" : cust.rebate_item if cust.rebate_item else 'REBATE',
                                         "description" : 'Rebate for exceed slab period {0} and {1}. Total brand sale {2}'.format(month_first_day,month_last_day,net_sale),
                                         "qty" : -1,
-                                        "rate" : convert_to_iqd((net_sale*slab_val[0].extra_percentage/100)) if cust.currency == 'IQD' else (net_sale*slab_val[0].extra_percentage/100),
+                                        "rate" : (net_sale*slab_val[0].extra_percentage/100),
                                         "cost_center" :cost_c
                                     })
                 sp = get_sales_person_by_rep(cust.sales_rep)
@@ -573,16 +596,16 @@ def already_process_rebate(customer,posting_date,rebate_type,company,employee, r
     else:
         return
 
-def net_sale_in_period(customer,from_date,to_date,company,employee,rebate, reb_period):
-    net_sale = frappe.db.sql("""SELECT sum(it.base_net_amount)base_grand_total FROM `tabSales Invoice` inv, `tabSales Invoice Item` it 
+def net_sale_in_period(customer,from_date,to_date,company,employee,rebate, reb_period, currency):
+    net_sale = frappe.db.sql("""SELECT sum(it.net_amount)grand_total FROM `tabSales Invoice` inv, `tabSales Invoice Item` it 
                                 where inv.name = it.parent
-                                and inv.company = %(company)s and inv.customer = %(customer)s
+                                and inv.company = %(company)s and inv.customer = %(customer)s AND inv.currency = %(currency)s
                                 and inv.posting_date between %(from_date)s and %(to_date)s and inv.employee = %(employee)s and inv.docstatus=1
                                 and it.brand in (select brand from `tabRebate Definition` rd where rd.parent = %(rebate)s)""",
-                                {'customer': customer,'from_date':from_date,'to_date':to_date,'company':company,'employee':employee,'rebate':rebate}, as_dict=True)
+                                {'customer': customer,'from_date':from_date,'to_date':to_date,'company':company,'employee':employee,'rebate':rebate, 'currency':currency}, as_dict=True)
     
     if net_sale:
-        return net_sale[0].base_grand_total
+        return net_sale[0].grand_total
     else:
         return 0
 

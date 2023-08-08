@@ -149,8 +149,11 @@ class PartyStatement(Document):
 		
 @frappe.whitelist()
 def get_statement_customer(doc_name):
-	customer_list = frappe.db.sql("""SELECT party,party_name FROM `tabAgeing Details` where parent = %(parent)s""",
+	customer_list = frappe.db.sql("""SELECT party,party_name FROM `tabAgeing Details` WHERE parent = %(parent)s
+									UNION ALL
+									SELECT party,party_name  FROM `tabAgeing Details IQD` WHERE parent = %(parent)s""",
                                   {'parent': doc_name}, as_dict=True)
+	
 	return customer_list;
 
 @frappe.whitelist()
