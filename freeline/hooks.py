@@ -113,12 +113,21 @@ doc_events = {
 	# },
     "Delivery Note":{
         "before_save": "freeline.freeline.globalapi.get_picklist_in_dn",
+        "on_change": "freeline.freeline.globalapi.update_pick_list_status",
     },
     "Stock Entry":{
         "validate": "freeline.freeline.globalapi.validate_same_batch",
     },
     "Sales Order":{
         "before_submit": "freeline.freeline.globalapi.validate_picker_warehouse_mandatory",
+        "validate": "freeline.freeline.events.validate_overdue_limit",
+    },
+    "Sales Invoice":{
+        "on_cancel": "freeline.freeline.events.set_rebate_empty",
+        "on_trash": "freeline.freeline.events.set_rebate_empty",
+    },
+    "Pick List":{
+        "validate": "freeline.freeline.events.set_pick_list_barcode",
     },
 }
 
@@ -250,7 +259,11 @@ fixtures = [
                 "Delivery Note-employee_name",
                 "Sales Order-total_weight",
                 "Sales Invoice-total_weight",
-                "Customer-is_sister_company_customer"
+                "Customer-is_sister_company_customer",
+                "Pick List-delivery_status",
+                "Customer-overdue_days",
+                "Pick List Item-barcode",
+                "Pick List Item-partial_barcode"
             ]
         ]
     ]},

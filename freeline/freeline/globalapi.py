@@ -437,10 +437,6 @@ def previous_quarter(ref):
     
 def generate_rebate_process():
     
-
-    month_last_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
-    month_first_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=month_last_day.day)
-    
     # month_last_day = parse('2023-03-31').date()
     # month_first_day = parse('2023-03-01').date()
     
@@ -449,6 +445,9 @@ def generate_rebate_process():
     
     for cust in rebate_customer:
         # check rebate is already processed
+        month_last_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=1)
+        month_first_day = datetime.date.today().replace(day=1) - datetime.timedelta(days=month_last_day.day)
+    
         net_sale = 0.0
         prev_rebate = already_process_rebate(cust.customer,month_last_day,cust.rebate_type,cust.company,cust.sales_rep,cust.rebate_duration)
 
@@ -838,6 +837,22 @@ def validate_picker_warehouse_mandatory(self, arg):
     if validate_enable.picker_warehouse_mandatory:
         if not self.picker_warehouse:
             frappe.throw("Picker Warehouse is mandatory.")
+
+def update_pick_list_status(self, arg):
+    
+    updated_pick_list = []
+    for row in self.items:
+        if row.pick_list_item and row.pick_list_item not in updated_pick_list:
+
+            pick_list_name = frappe.db.sql(""" SELECT parent from `tabPick List Item` where name = %(pick_list_item)s """,
+                                                    {'pick_list_item': row.pick_list_item}, as_list=True)
+            if pick_list_name:
+                pick_name = pick_list_name[0][0]
+                frappe.db.sql(""" UPDATE `tabPick List` SET delivery_status = %(delivery_status)s where name = %(pick_name)s""",
+                                                    {'delivery_status': self.status, 'pick_name':pick_name}, as_list=True)
+            
+            updated_pick_list.append(row.pick_list_item)
+
 
 
 # bench execute freeline.freeline.globalapi.generate_rebate_process

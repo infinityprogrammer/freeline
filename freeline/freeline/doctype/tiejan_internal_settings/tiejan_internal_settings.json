@@ -8,8 +8,11 @@
  "field_order": [
   "cash_van_batch_validation",
   "picker_warehouse_mandatory",
+  "role_allowed_overdue_customer",
   "column_break_3",
-  "invoice_round_off"
+  "invoice_round_off",
+  "pick_list_status_update_role",
+  "alert_on_overdue_in_days"
  ],
  "fields": [
   {
@@ -33,12 +36,29 @@
    "fieldname": "invoice_round_off",
    "fieldtype": "Check",
    "label": "Invoice Round Off"
+  },
+  {
+   "fieldname": "pick_list_status_update_role",
+   "fieldtype": "Link",
+   "label": "Pick List Status Update Role",
+   "options": "Role"
+  },
+  {
+   "fieldname": "role_allowed_overdue_customer",
+   "fieldtype": "Link",
+   "label": "Role Allowed Overdue Customer",
+   "options": "Role"
+  },
+  {
+   "fieldname": "alert_on_overdue_in_days",
+   "fieldtype": "Int",
+   "label": "Alert On Overdue In Days"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-06-13 13:46:00.763709",
+ "modified": "2023-09-07 13:35:24.909492",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Tiejan Internal Settings",

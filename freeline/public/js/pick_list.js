@@ -12,6 +12,59 @@ frappe.ui.form.on('Pick List', {
                 create_delivery_note(frm)
             }, "fa fa-money");
         }
+
+
+        var userRoles = frappe.user_roles;
+        // console.log(userRoles);
+
+        if (!frm.is_new()) {
+            frappe.db.get_single_value("Tiejan Internal Settings", "pick_list_status_update_role").then((val) => {
+                if (userRoles.includes(val)) {
+                    // console.log("User is allowed to update bonus budget.");
+
+                    frm.add_custom_button(__("Update Pick List Status"), function () {
+                        let d = new frappe.ui.Dialog({
+                            title: "Select Status",
+                            fields: [
+                                {
+                                    label: "Delivery Note Status",
+                                    fieldname: "dn_status",
+                                    fieldtype: "Select",
+                                    options: ["Draft", "To Bill", "Completed", "Return Issued", "Cancelled", "Closed"],
+                                    reqd: 1,
+                                    default: "Draft",
+                                }
+                            ],
+                            size: "small", // small, large, extra-large
+                            primary_action_label: "Update Status",
+                            primary_action(values) {
+                                console.log(values);
+
+                                var dn_status = values.dn_status;
+
+                                frm.call(
+                                    "update_pick_list_status_manually",
+                                    {
+                                        dn_status: dn_status,
+                                    },
+                                    (r) => {
+                                        console.log(r);
+                                        frappe.show_alert({
+                                            message: __("Pick List DN Status Updated"),
+                                            indicator: "green",
+                                        });
+                                    }
+                                );
+
+                                d.hide();
+                            },
+                        });
+
+                        d.show();
+                    }).addClass("btn btn-danger");
+                }
+            });
+        }
     },
     setup(frm) {
         var df = frappe.meta.get_docfield("Pick List Item", "qty", cur_frm.doc.name);
