@@ -1,5 +1,6 @@
 import frappe
 from frappe.model.document import Document
+from frappe import _
 
 from erpnext.stock.doctype.pick_list.pick_list import PickList
 from frappe.utils.nestedset import get_descendants_of

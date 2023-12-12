@@ -96,12 +96,12 @@ frappe.ui.form.on('Pick List Item', {
 
 
 function create_delivery_note(frm) {
-    let emp_code = frm.doc.employee_driver_id
+    let emp_code = frm.doc.employee_driver
     frappe.model.open_mapped_doc({
         method: 'erpnext.stock.doctype.pick_list.pick_list.create_delivery_note',
         frm: frm
     }).then(delivery_note => {
         let arr = delivery_note.message
-        frappe.db.set_value('Delivery Note', arr.name, 'employee_driver_id', emp_code)
+        frappe.db.set_value('Delivery Note', arr.name, 'employee_driver', emp_code)
     });
 }

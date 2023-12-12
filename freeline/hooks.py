@@ -114,20 +114,26 @@ doc_events = {
     "Delivery Note":{
         "before_save": "freeline.freeline.globalapi.get_picklist_in_dn",
         "on_change": "freeline.freeline.globalapi.update_pick_list_status",
+        "before_insert": "freeline.freeline.events.update_dn_with_pick_list",
     },
     "Stock Entry":{
         "validate": "freeline.freeline.globalapi.validate_same_batch",
     },
     "Sales Order":{
-        "before_submit": "freeline.freeline.globalapi.validate_picker_warehouse_mandatory",
-        "validate": "freeline.freeline.events.validate_overdue_limit",
+        "before_submit": [
+            "freeline.freeline.globalapi.validate_picker_warehouse_mandatory",
+            "freeline.freeline.events.validate_overdue_limit",
+        ]
     },
     "Sales Invoice":{
         "on_cancel": "freeline.freeline.events.set_rebate_empty",
         "on_trash": "freeline.freeline.events.set_rebate_empty",
     },
     "Pick List":{
-        "validate": "freeline.freeline.events.set_pick_list_barcode",
+        "validate": [
+            "freeline.freeline.events.set_pick_list_barcode",
+            "freeline.freeline.events.set_sales_order_pick_list",
+        ]
     },
 }
 
@@ -176,9 +182,10 @@ scheduler_events = {
 # each overriding function accepts a `data` argument;
 # generated from the base implementation of the doctype dashboard,
 # along with any modifications made in other Frappe apps
-# override_doctype_dashboards = {
-# 	"Task": "freeline.task.get_dashboard_data"
-# }
+
+override_doctype_dashboards = {
+	"Pick List": "freeline.freeline.custom_dashboard.get_so_pick_list_connection"
+}
 
 # exempt linked doctypes from being automatically cancelled
 #
@@ -263,7 +270,8 @@ fixtures = [
                 "Pick List-delivery_status",
                 "Customer-overdue_days",
                 "Pick List Item-barcode",
-                "Pick List Item-partial_barcode"
+                "Pick List Item-partial_barcode",
+                "Pick List-sales_order"
             ]
         ]
     ]},
@@ -289,6 +297,7 @@ jenv = {
 		"get_uom_qty_sum_inv:freeline.freeline.globalapi.get_uom_qty_sum_inv",
         "get_unallocated_payment:freeline.freeline.doctype.party_statement.party_statement.get_unallocated_payment",
         "get_unallocated_payment_not_in_ageing:freeline.freeline.doctype.party_statement.party_statement.get_unallocated_payment_not_in_ageing",
+        "get_unallocated_payment_not_in_ageing_iqd:freeline.freeline.doctype.party_statement.party_statement.get_unallocated_payment_not_in_ageing_iqd",
         "get_not_due_amount:freeline.freeline.doctype.party_statement.party_statement.get_not_due_amount",
         "get_uom_qty_sum_order:freeline.freeline.globalapi.get_uom_qty_sum_order",
     ]

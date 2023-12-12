@@ -46,9 +46,13 @@ class SalesInvoiceData:
 					sales_p.append(s.employee)
 			self.filters['sales_person'] = sales_p
 			conditions += " and inv.employee in %(sales_person)s"
+		
+		if self.filters.get("company"):
+			conditions += " and inv.company in %(company)s"
+
 		data = frappe.db.sql(
 		"""
-		SELECT inv.name,inv.posting_date,employee,employee_name,currency,due_date,
+		SELECT inv.company,inv.name,inv.posting_date,employee,employee_name,currency,due_date,
 		grand_total,outstanding_amount,status,acc.account_currency, 
 		--
 		IF(acc.account_currency = 'IQD', (round(inv.outstanding_amount * inv.conversion_rate, 2)), inv.outstanding_amount)outstanding_base
@@ -72,6 +76,13 @@ def get_columns():
 			"fieldname": "name",
 			"fieldtype": "Link",
 			"options": "Sales Invoice",
+			"width": 170,
+		},
+		{
+			"label": _("Company"),
+			"fieldname": "company",
+			"fieldtype": "Link",
+			"options": "Company",
 			"width": 170,
 		},
 		{

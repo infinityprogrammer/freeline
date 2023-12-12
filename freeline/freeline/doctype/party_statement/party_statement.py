@@ -263,6 +263,17 @@ def get_unallocated_payment_not_in_ageing(company, employee, s_currency, parent)
 	return unallocated_amount;
 
 @frappe.whitelist()
+def get_unallocated_payment_not_in_ageing_iqd(company, employee, s_currency, parent):
+	unallocated_amount = frappe.db.sql(""" SELECT party,sum(ifnull(unallocated_amount, 0))unallocated_amount FROM `tabPayment Entry` where paid_from_account_currency = %(s_currency)s
+											AND unallocated_amount > 0 AND employee_id = %(employee)s AND party_type = 'Customer'
+											and docstatus=1 and company = %(company)s and party not in
+											(SELECT party FROM `tabAgeing Details IQD` where parent = %(parent)s AND party_type = 'Customer') group by party""",
+                                  	{'company':company,'s_currency':s_currency,'employee':employee,'parent':parent}, as_dict=True)
+	
+	return unallocated_amount;
+
+
+@frappe.whitelist()
 def get_not_due_amount(company, customer, employee, s_currency, posting_date):
 	not_due_amount = frappe.db.sql(""" SELECT ifnull(IF ((SELECT account_currency from `tabAccount` where name = debit_to) = currency, 
 										SUM(outstanding_amount), SUM(outstanding_amount/conversion_rate)), 0)no_due FROM `tabSales Invoice`

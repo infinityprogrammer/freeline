@@ -52,7 +52,7 @@ def get_data(filters):
 	data = frappe.db.sql(
 		"""
 		SELECT (select inv.employee from `tabSales Invoice` inv where inv.name = a.reference_name)employee,
-		(SELECT sp.parent from `tabSales Person` sp where 
+		(SELECT parent_sales_person from `tabSales Person` sp where 
 		sp.employee = (select employee from `tabSales Invoice` inv where inv.name = a.reference_name))sales_team,
 		b.posting_date, b.name,a.reference_name,paid_from_account_currency, paid_to_account_currency,
 		round(a.total_amount,2)total_amount,round(a.allocated_amount,2)allocated_amount,

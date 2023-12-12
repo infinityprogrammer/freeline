@@ -7,10 +7,15 @@ frappe.query_reports["Sales Rep Outstanding Report"] = {
 		{
 			"fieldname": "company",
 			"label": __("Company"),
-			"fieldtype": "Link",
+			"fieldtype": "MultiSelectList",
 			"options": "Company",
 			"reqd":1,
-			"default":frappe.defaults.get_user_default("company")
+			get_data: function(txt) {
+				// return frappe.db.get_link_options("Sales Person", txt);
+				// frappe.query_report.set_filter_value('is_group', 0);
+				return frappe.db.get_link_options("Company", txt);
+			},
+			"reqd": 1,
 		},
 		{
 			"fieldname": "sales_person",

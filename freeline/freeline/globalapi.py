@@ -405,18 +405,24 @@ def get_trade_price_list():
     for i in price_lists:
         val_rate = get_item_valuation_rate(i.item_code)
         if val_rate and val_rate != i.price_list_rate:
-
             stock_uom = frappe.db.get_value('Item', i.item_code, 'stock_uom')
             if stock_uom == i.uom:
                 frappe.db.set_value('Item Price', i.name, 'price_list_rate', val_rate)
                 i['val_rate'] = val_rate
+                changed_price.append(i)
             else:
                 conv_fact = get_item_uom_conversion_factor(i.item_code, i.uom)
+                
                 if conv_fact:
-                    frappe.db.set_value('Item Price', i.name, 'price_list_rate', conv_fact*val_rate)
-                    i['val_rate'] = conv_fact*val_rate
+                    uom_price = round((conv_fact * val_rate), 2)
+                    pricelist_price = round((i.price_list_rate), 2)
 
-            changed_price.append(i)
+                    if uom_price != pricelist_price:
+                        if conv_fact:
+                            frappe.db.set_value('Item Price', i.name, 'price_list_rate', conv_fact*val_rate)
+                            i['val_rate'] = conv_fact*val_rate
+                            changed_price.append(i)
+            
             doc = frappe.get_doc('Item Price', i.name)
             doc.add_comment('Comment', text='Price changed from {0} to {1}'.format(i.price_list_rate, val_rate))
 
