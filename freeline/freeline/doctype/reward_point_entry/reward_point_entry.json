@@ -1,0 +1,127 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-12-20 09:03:07.753773",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "program_name",
+  "company",
+  "posting_date",
+  "currency",
+  "expired_point",
+  "column_break_4",
+  "sales_invoice",
+  "customer",
+  "total_point",
+  "redeem_status",
+  "balance_point",
+  "point_allocation_section",
+  "allocation"
+ ],
+ "fields": [
+  {
+   "fieldname": "program_name",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Program Name",
+   "options": "Reward Program"
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Posting Date"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "sales_invoice",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Sales Invoice",
+   "options": "Sales Invoice"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "total_point",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Total Point"
+  },
+  {
+   "fieldname": "redeem_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Redeem Status",
+   "options": "\nEarned\nRedeemed\nCancelled\nExpired"
+  },
+  {
+   "fieldname": "point_allocation_section",
+   "fieldtype": "Section Break",
+   "label": "Point Allocation"
+  },
+  {
+   "fieldname": "allocation",
+   "fieldtype": "Table",
+   "label": "Allocation",
+   "options": "Reward Point Allocation"
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency"
+  },
+  {
+   "fieldname": "expired_point",
+   "fieldtype": "Float",
+   "label": "Expired Point"
+  },
+  {
+   "fieldname": "balance_point",
+   "fieldtype": "Float",
+   "label": "Balance Point"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-12-21 10:20:01.467286",
+ "modified_by": "Administrator",
+ "module": "Freeline",
+ "name": "Reward Point Entry",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

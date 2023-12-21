@@ -123,11 +123,16 @@ doc_events = {
         "before_submit": [
             "freeline.freeline.globalapi.validate_picker_warehouse_mandatory",
             "freeline.freeline.events.validate_overdue_limit",
-        ]
+        ],
+        "validate": "freeline.freeline.events.validate_same_warehouse",
     },
     "Sales Invoice":{
-        "on_cancel": "freeline.freeline.events.set_rebate_empty",
+        "on_cancel": [
+            "freeline.freeline.events.set_rebate_empty",
+            "freeline.freeline.events.reward_point_entry_process_cancel",
+        ],
         "on_trash": "freeline.freeline.events.set_rebate_empty",
+        "on_submit": "freeline.freeline.events.reward_point_entry_process",
     },
     "Pick List":{
         "validate": [
@@ -163,6 +168,9 @@ scheduler_events = {
 		],
 		"10 4 1 * *": [
 			"freeline.freeline.globalapi.generate_shelf_rentals",
+		],
+        "0 1 * * *": [
+			"freeline.freeline.events.expire_reward_point",
 		],
 	},
 }

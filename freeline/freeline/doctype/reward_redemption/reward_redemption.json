@@ -1,0 +1,121 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "RED-.#####",
+ "creation": "2023-12-20 13:49:48.882774",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "customer",
+  "reward_program",
+  "column_break_3",
+  "from_date",
+  "to_date",
+  "currency",
+  "redemption_allocation_section",
+  "get_points",
+  "points",
+  "total_redeem_point",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "From Date"
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "label": "To Date"
+  },
+  {
+   "fieldname": "reward_program",
+   "fieldtype": "Link",
+   "label": "Reward Program",
+   "options": "Reward Program"
+  },
+  {
+   "fieldname": "redemption_allocation_section",
+   "fieldtype": "Section Break",
+   "label": "Redemption Allocation"
+  },
+  {
+   "fieldname": "get_points",
+   "fieldtype": "Button",
+   "label": "Get Points"
+  },
+  {
+   "fieldname": "points",
+   "fieldtype": "Table",
+   "label": "Points",
+   "options": "Redemption Details"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Reward Redemption",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_redeem_point",
+   "fieldtype": "Float",
+   "label": "Total Redeem Point",
+   "read_only": 1
+  },
+  {
+   "fieldname": "currency",
+   "fieldtype": "Link",
+   "label": "Currency",
+   "options": "Currency",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2023-12-20 14:23:45.902589",
+ "modified_by": "Administrator",
+ "module": "Freeline",
+ "name": "Reward Redemption",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

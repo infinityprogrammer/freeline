@@ -1,0 +1,145 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:{program_name}-{customer}",
+ "creation": "2023-12-20 08:04:17.016359",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "program_name",
+  "customer",
+  "customer_name",
+  "column_break_5",
+  "company",
+  "from_date",
+  "to_date",
+  "enabled",
+  "section_break_7",
+  "minimum_invoice_amount",
+  "conversion_factor",
+  "column_break_10",
+  "invoice_currency",
+  "expiry_duration",
+  "weight_distribution_section",
+  "distribution"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "program_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Program Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "From Date"
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "label": "To Date"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "expiry_duration",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Expiry Duration (in days)"
+  },
+  {
+   "fieldname": "minimum_invoice_amount",
+   "fieldtype": "Currency",
+   "label": "Minimum Invoice Amount",
+   "options": "invoice_currency"
+  },
+  {
+   "fieldname": "invoice_currency",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Invoice Currency",
+   "options": "Currency"
+  },
+  {
+   "description": "1 Reward Points = How much in currency?",
+   "fieldname": "conversion_factor",
+   "fieldtype": "Float",
+   "label": "Conversion Factor"
+  },
+  {
+   "fieldname": "section_break_7",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_10",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "weight_distribution_section",
+   "fieldtype": "Section Break",
+   "label": "Weight Distribution"
+  },
+  {
+   "fieldname": "distribution",
+   "fieldtype": "Table",
+   "label": "Distribution",
+   "options": "Reward Weight Distribution"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fetch_from": "customer.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Customer Name",
+   "read_only": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2023-12-20 08:55:09.738485",
+ "modified_by": "Administrator",
+ "module": "Freeline",
+ "name": "Reward Program",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

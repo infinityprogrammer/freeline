@@ -100,6 +100,154 @@ def update_dn_with_pick_list(self, args):
 					return None
 			return None
 
+def reward_point_entry_process(self, args):
+    programs = frappe.db.sql("""
+							SELECT name, customer, from_date, to_date, minimum_invoice_amount, 
+							invoice_currency, conversion_factor
+							FROM `tabReward Program` WHERE enabled = 1 AND curdate() BETWEEN from_date AND to_date
+                            and invoice_currency = %(invoice_currency)s and customer = %(customer)s""", 
+							{'invoice_currency': self.currency, 'customer': self.customer}, as_dict=True)
+    for row in programs:
+        if flt(abs(self.grand_total)) >= flt(row.minimum_invoice_amount):
+            point_accumulation = frappe.db.sql("""SELECT item_code, brand, net_amount,document_type, document_name, weight,b.parent 
+													FROM `tabSales Invoice Item` a, `tabReward Weight Distribution` b
+													where a.brand = b.document_name
+													and a.parent = %(invoice)s
+													and b.document_type = 'Brand'
+													and b.parent = %(program)s
+													union all
+													SELECT item_code, brand, net_amount,document_type, document_name, weight, b.parent 
+													FROM `tabSales Invoice Item` a, `tabReward Weight Distribution` b
+													where a.item_code = b.document_name
+													and a.parent = %(invoice)s
+													and b.document_type = 'Item'
+													and b.parent = %(program)s """,
+                                                	{'program':row.name, 'invoice': self.name}, as_dict=True)
+            
+            doc = frappe.new_doc('Reward Point Entry')
+            doc.program_name = row.name
+            doc.sales_invoice = self.name
+            doc.company = self.company
+            doc.customer = self.customer
+            doc.posting_date = self.posting_date
+            doc.currency = self.currency
+            doc.redeem_status = "Earned"
+            
+            total_point = 0.00
+            
+            for point in point_accumulation:
+                item_point = (flt(point.net_amount)/flt(row.conversion_factor)) * flt(point.weight)
+                total_point += (flt(point.net_amount)/flt(row.conversion_factor)) * flt(point.weight)
+                doc.append("allocation",{
+					"document_type" : point.document_type,
+					"document_name" : point.document_name,
+					"net_amount" : point.net_amount,
+					"weight" : point.weight,
+					"item_code" : point.item_code,
+					"point_earned" : item_point
+				})
+            
+            doc.total_point = total_point
+            doc.balance_point = total_point
+            doc.save(ignore_permissions=True)
+
+def reward_point_entry_process_cancel(self, args):
+    programs = frappe.db.sql("""
+							SELECT name, customer, from_date, to_date, minimum_invoice_amount, 
+							invoice_currency, conversion_factor
+							FROM `tabReward Program` WHERE enabled = 1 AND curdate() BETWEEN from_date AND to_date
+                            and invoice_currency = %(invoice_currency)s and customer = %(customer)s""", 
+							{'invoice_currency': self.currency, 'customer': self.customer}, as_dict=True)
+    for row in programs:
+        if flt(abs(self.grand_total)) >= flt(row.minimum_invoice_amount):
+            point_accumulation = frappe.db.sql("""SELECT item_code, brand, net_amount,document_type, document_name, weight,b.parent 
+													FROM `tabSales Invoice Item` a, `tabReward Weight Distribution` b
+													where a.brand = b.document_name
+													and a.parent = %(invoice)s
+													and b.document_type = 'Brand'
+													and b.parent = %(program)s
+													union all
+													SELECT item_code, brand, net_amount,document_type, document_name, weight, b.parent 
+													FROM `tabSales Invoice Item` a, `tabReward Weight Distribution` b
+													where a.item_code = b.document_name
+													and a.parent = %(invoice)s
+													and b.document_type = 'Item'
+													and b.parent = %(program)s """,
+                                                	{'program':row.name, 'invoice': self.name}, as_dict=True)
+            
+            doc = frappe.new_doc('Reward Point Entry')
+            doc.program_name = row.name
+            doc.sales_invoice = self.name
+            doc.company = self.company
+            doc.customer = self.customer
+            doc.posting_date = self.posting_date
+            doc.currency = self.currency
+            doc.redeem_status = "Earned"
+            
+            total_point = 0.00
+            
+            for point in point_accumulation:
+                item_point = (flt(point.net_amount)/flt(row.conversion_factor)) * flt(point.weight) *-1
+                total_point += (flt(point.net_amount)/flt(row.conversion_factor)) * flt(point.weight) *-1
+                doc.append("allocation",{
+					"document_type" : point.document_type,
+					"document_name" : point.document_name,
+					"net_amount" : point.net_amount,
+					"weight" : point.weight,
+					"item_code" : point.item_code,
+					"point_earned" : item_point
+				})
+                
+            doc.total_point = total_point
+            doc.balance_point = total_point
+            doc.save(ignore_permissions=True)
+
+def expire_reward_point():
+	reward_points = frappe.db.sql("""SELECT a.company, a.program_name, a.customer, a.redeem_status,
+									b.item_code, b.point_earned, c.expiry_duration,b.expired, b.name, a.name as pe_name
+									FROM `tabReward Point Entry` a, `tabReward Point Allocation` b, `tabReward Program` c
+									where a.name = b.parent and a.program_name = c.name
+									and a.redeem_status = 'Earned' and b.expired = 0""", as_dict=True)
+    
+	for row in reward_points:
+		last_inv = get_customer_last_inv(row.company, row.customer, row.item_code)
+		
+		if last_inv:
+			if last_inv.diff >= row.expiry_duration:
+				set_point_expiry(row.name, row.point_earned, row.pe_name)
+
+def get_customer_last_inv(company, customer, item_code):
+	last_inv = frappe.db.sql("""SELECT a.company, a.customer, a.posting_date, b.item_code, 
+                               			datediff(curdate(), a.posting_date)diff 
+										FROM `tabSales Invoice` a, `tabSales Invoice Item` b
+										where a.name = b.parent and b.item_code = %(item_code)s and a.docstatus = 1
+										and a.company = %(company)s and a.customer = %(customer)s
+										order by a.posting_date desc limit 1""",
+                                        {'company': company, 'customer': customer, 'item_code': item_code} ,as_dict=True)
+	if last_inv:
+		return last_inv[0]
+	else:
+		return None
+
+def set_point_expiry(name, point, pe_name):
+	expiried = frappe.db.sql("""UPDATE `tabReward Point Allocation` SET expired = 1 WHERE name = %(name)s""",
+                                        {'name': name} ,as_dict=True)
+	
+	doc = frappe.get_doc('Reward Point Entry', pe_name)
+	doc.expired_point = doc.expired_point + point
+	if (doc.balance_point - point) == 0:
+		doc.redeem_status = "Expired"
+		
+	doc.balance_point = doc.balance_point - point
+	doc.save()
+
+def validate_same_warehouse(self, args):
+    
+	for row in self.items:
+		item_wh_branch = frappe.db.get_value('Warehouse', row.warehouse, 'branch')
+        
+		if item_wh_branch != self.customer_site:
+			frappe.msgprint('Row #{0}: Order Branch is {1}, But the Warehouse is {2}.'.format(frappe.bold(row.idx), frappe.bold(self.customer_site), frappe.bold(row.warehouse)));
 
 @frappe.whitelist()
 def make_sales_invoice(source_name, target_doc=None):
