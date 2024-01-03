@@ -25,7 +25,8 @@ def validate_overdue_limit(self, args):
     user_roles = frappe.get_roles()
 
     over_due_day = get_over_due_days(self.customer, self.company)
-
+    
+	
     if over_due_day:
         if over_due_day >= alert_on_overdue:
             frappe.msgprint('Customer overdue day reached {0} days, Maximum {1}'.format(over_due_day, overdue_limt_days));
@@ -36,7 +37,7 @@ def validate_overdue_limit(self, args):
             
             over_due_inv = frappe.db.sql(""" SELECT name, customer ,posting_date, due_date, datediff(CURDATE(), due_date)diff 
                                             FROM `tabSales Invoice` where docstatus = 1 and status = 'Overdue'
-                                            and outstanding_amount > 0 and is_return = 0 and customer = %(customer)s
+                                            and outstanding_amount > 1 and is_return = 0 and customer = %(customer)s
                                             and company = %(company)s
                                             and datediff(CURDATE(), due_date) > %(overdue_limt_days)s""",
                                         {'customer': self.customer,'company': self.company,'overdue_limt_days':overdue_limt_days}, as_dict=True)
@@ -50,7 +51,7 @@ def validate_overdue_limit(self, args):
 def get_over_due_days(customer, company):
     over_due_inv = frappe.db.sql("""SELECT max(datediff(curdate(), due_date))days 
                                     FROM `tabSales Invoice` where docstatus = 1 and status = 'Overdue'
-                                    and customer = %(customer)s and company = %(company)s""",
+                                    and customer = %(customer)s and company = %(company)s and outstanding_amount > 1""",
                                     {'customer': customer,'company': company}, as_dict=True)
     if over_due_inv:
         if over_due_inv[0].days:

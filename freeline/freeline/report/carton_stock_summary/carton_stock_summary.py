@@ -82,4 +82,4 @@ def get_total_stock(filters):
 			INNER JOIN `tabWarehouse` warehouse
 				ON warehouse.name = ledger.warehouse
 			WHERE
-				ledger.actual_qty != 0 {1}""".format(columns, conditions), filters)
+				item.disabled = 0 {1}""".format(columns, conditions), filters)
