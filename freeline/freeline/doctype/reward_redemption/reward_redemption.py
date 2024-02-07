@@ -8,7 +8,7 @@ from frappe.model.document import Document
 class RewardRedemption(Document):
 
 	def validate(self):
-		pass
+		self.total_redeem_amount = flt(self.total_redeem_point * flt(self.point_to_currency))
 
 	def on_submit(self):
 		si = frappe.new_doc("Sales Invoice")
@@ -34,7 +34,7 @@ class RewardRedemption(Document):
 							"item_code" : 'REBATE',
 							"description" : 'LOYALTY REDEMPTION FROM {0} to {1}'.format(self.from_date, self.to_date),
 							"qty" : -1,
-							"rate" : self.total_redeem_point * -1,
+							"rate" : flt(self.total_redeem_amount) * -1,
 							"cost_center" :cost_c,
 						})
 		

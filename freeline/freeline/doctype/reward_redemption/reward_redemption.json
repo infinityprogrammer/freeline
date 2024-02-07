@@ -10,6 +10,7 @@
   "company",
   "customer",
   "reward_program",
+  "point_to_currency",
   "column_break_3",
   "from_date",
   "to_date",
@@ -18,6 +19,7 @@
   "get_points",
   "points",
   "total_redeem_point",
+  "total_redeem_amount",
   "amended_from"
  ],
  "fields": [
@@ -92,12 +94,26 @@
    "label": "Currency",
    "options": "Currency",
    "reqd": 1
+  },
+  {
+   "default": "1",
+   "description": "One Point = How much in currency ?",
+   "fieldname": "point_to_currency",
+   "fieldtype": "Float",
+   "label": "Point to Currency"
+  },
+  {
+   "fieldname": "total_redeem_amount",
+   "fieldtype": "Currency",
+   "label": "Total Redeem Amount",
+   "options": "currency",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2023-12-20 14:23:45.902589",
+ "modified": "2024-02-01 07:49:08.378256",
  "modified_by": "Administrator",
  "module": "Freeline",
  "name": "Reward Redemption",

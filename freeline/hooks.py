@@ -41,6 +41,7 @@ doctype_js = {
     "Pick List" : "public/js/pick_list.js",
     "Delivery Note" : "public/js/delivery_note.js",
 	"Stock Reconciliation" : "public/js/stock_reconciliation.js",
+	"Sales Person" : "public/js/sales_person.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -279,7 +280,16 @@ fixtures = [
                 "Customer-overdue_days",
                 "Pick List Item-barcode",
                 "Pick List Item-partial_barcode",
-                "Pick List-sales_order"
+                "Pick List-sales_order",
+                "Warehouse-pallet_capacity_on_floor",
+                "Warehouse-pallet_capacity_on_rack",
+                "Item-hi_uom_volume",
+                "Item-hi_uom_pallets_capacity",
+                "Item-stacking_height",
+                "Monthly Distribution-employee",
+                "Monthly Distribution-employee_name",
+                "Sales Person-target_definition",
+                "Monthly Distribution-brand"
             ]
         ]
     ]},
