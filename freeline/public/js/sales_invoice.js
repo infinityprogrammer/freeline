@@ -1,4 +1,16 @@
 frappe.ui.form.on("Sales Invoice", {
+
+    refresh(frm) {
+
+        frm.set_query("inter_company", function() {
+			return {
+                filters: {
+                    'name': ["not in", [frm.doc.company]],
+                }
+            }
+		});
+
+    },
     
     before_save:function(frm){
         

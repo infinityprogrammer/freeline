@@ -126,6 +126,7 @@ doc_events = {
             "freeline.freeline.events.validate_overdue_limit",
         ],
         "validate": "freeline.freeline.events.validate_same_warehouse",
+        "on_submit": "freeline.freeline.events.create_intercomapny_po",
     },
     "Sales Invoice":{
         "on_cancel": [
@@ -133,7 +134,10 @@ doc_events = {
             "freeline.freeline.events.reward_point_entry_process_cancel",
         ],
         "on_trash": "freeline.freeline.events.set_rebate_empty",
-        "on_submit": "freeline.freeline.events.reward_point_entry_process",
+        "on_submit": [
+            "freeline.freeline.events.reward_point_entry_process",
+            "freeline.freeline.events.create_intercomapny_po_from_inv",
+        ]
     },
     "Pick List":{
         "validate": [
@@ -289,10 +293,44 @@ fixtures = [
                 "Monthly Distribution-employee",
                 "Monthly Distribution-employee_name",
                 "Sales Person-target_definition",
-                "Monthly Distribution-brand"
+                "Monthly Distribution-brand",
+                "Sales Order-create_intercompany_po",
+                "Sales Order-intercompany",
+                "Sales Order-po_supplier",
+                "Purchase Order-intercompany_so",
+                "Sales Invoice-create_inter_company_po",
+                "Sales Invoice-inter_company",
+                "Sales Invoice-po_supplier",
+                "Purchase Order-inter_company_si",
+                "Item-supplier_item_code",
+                "Item-main_barcode"
             ]
         ]
     ]},
+    {
+        "dt": "Property Setter",
+        "filters": [
+            [
+                "name",
+                "in",
+                [
+                    "Item-main-search_fields",
+                ],
+            ]
+        ],
+    },
+    {
+        "dt": "Client Script",
+        "filters": [
+            [
+                "name",
+                "in",
+                [
+                    "Item-Form",
+                ],
+            ]
+        ],
+    },
 ]
 
 jenv = {

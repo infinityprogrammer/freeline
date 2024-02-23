@@ -75,7 +75,20 @@ class OverridePickList(PickList):
         
         frappe.db.sql(""" UPDATE `tabPick List` SET delivery_status = %(delivery_status)s where name = %(pick_name)s""",
                                                     {'delivery_status': dn_status, 'pick_name':self.name}, as_list=True)
+    
+    @frappe.whitelist()
+    def update_pick_list_hand_picked_qty(self, line_number, hand_picked_qty):
 
+        for row in self.locations:
+            if row.idx == line_number:
+                
+                if flt(hand_picked_qty) <= flt(row.qty):
+                    frappe.db.sql("""UPDATE `tabPick List Item` SET hand_picked_qty = %(hand_picked_qty)s, picked_qty = %(picked_qty)s
+                                    where parenttype = 'Pick List' and parent = %(parent)s and idx = %(idx)s""",
+                                    {'hand_picked_qty': hand_picked_qty, 'picked_qty': hand_picked_qty, 
+                                    'parent': self.name, 'idx': line_number}, as_list=True)
+                else:
+                    frappe.throw("Cannot pick item more than ordered.")
 
 def get_items_with_location_and_quantity(item_doc, item_location_map, docstatus):
 	available_locations = item_location_map.get(item_doc.item_code)

@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
-from frappe.utils import getdate, now_datetime, nowdate, flt, cint, get_datetime_str, nowdate
+from frappe.utils import getdate, now_datetime, nowdate, flt, cint, get_datetime_str, nowdate, get_link_to_form
 from frappe import _
 import json
 import datetime
@@ -12,81 +12,81 @@ from frappe.model.utils import get_fetch_values
 
 
 def set_rebate_empty(self, args):
-    if self.rebate_duration:
-        invs = frappe.db.sql(""" UPDATE `tabRental Invoices` SET voucher_no = NULL, amount = 0  WHERE voucher_no = %(voucher_no)s""",
-                                    {'voucher_no': self.name}, as_dict=True)
+	if self.rebate_duration:
+		invs = frappe.db.sql(""" UPDATE `tabRental Invoices` SET voucher_no = NULL, amount = 0  WHERE voucher_no = %(voucher_no)s""",
+									{'voucher_no': self.name}, as_dict=True)
 
 def validate_overdue_limit(self, args):
-    
-    overdue_limt_days = frappe.db.get_value('Customer', self.customer, 'overdue_days')
-    role_allow = frappe.db.get_single_value('Tiejan Internal Settings', 'role_allowed_overdue_customer')
-    alert_on_overdue = frappe.db.get_single_value('Tiejan Internal Settings', 'alert_on_overdue_in_days')
-    
-    user_roles = frappe.get_roles()
-
-    over_due_day = get_over_due_days(self.customer, self.company)
-    
 	
-    if over_due_day:
-        if over_due_day >= alert_on_overdue:
-            frappe.msgprint('Customer overdue day reached {0} days, Maximum {1}'.format(over_due_day, overdue_limt_days));
-    
+	overdue_limt_days = frappe.db.get_value('Customer', self.customer, 'overdue_days')
+	role_allow = frappe.db.get_single_value('Tiejan Internal Settings', 'role_allowed_overdue_customer')
+	alert_on_overdue = frappe.db.get_single_value('Tiejan Internal Settings', 'alert_on_overdue_in_days')
+	
+	user_roles = frappe.get_roles()
 
-    if overdue_limt_days:
-        if role_allow:
-            
-            over_due_inv = frappe.db.sql(""" SELECT name, customer ,posting_date, due_date, datediff(CURDATE(), due_date)diff 
-                                            FROM `tabSales Invoice` where docstatus = 1 and status = 'Overdue'
-                                            and outstanding_amount > 1 and is_return = 0 and customer = %(customer)s
-                                            and company = %(company)s
-                                            and datediff(CURDATE(), due_date) > %(overdue_limt_days)s""",
-                                        {'customer': self.customer,'company': self.company,'overdue_limt_days':overdue_limt_days}, as_dict=True)
-            
-            for row in over_due_inv:
-                if role_allow in user_roles:
-                    frappe.msgprint("Invoice {0} exceed overdue limit days {1}".format(row.name, overdue_limt_days));
-                else:
-                    frappe.throw("Invoice {0} exceed overdue limit days {1}".format(row.name, overdue_limt_days))
+	over_due_day = get_over_due_days(self.customer, self.company)
+	
+	
+	if over_due_day:
+		if over_due_day >= alert_on_overdue:
+			frappe.msgprint('Customer overdue day reached {0} days, Maximum {1}'.format(over_due_day, overdue_limt_days));
+	
+
+	if overdue_limt_days:
+		if role_allow:
+			
+			over_due_inv = frappe.db.sql(""" SELECT name, customer ,posting_date, due_date, datediff(CURDATE(), due_date)diff 
+											FROM `tabSales Invoice` where docstatus = 1 and status = 'Overdue'
+											and outstanding_amount > 1 and is_return = 0 and customer = %(customer)s
+											and company = %(company)s
+											and datediff(CURDATE(), due_date) > %(overdue_limt_days)s""",
+										{'customer': self.customer,'company': self.company,'overdue_limt_days':overdue_limt_days}, as_dict=True)
+			
+			for row in over_due_inv:
+				if role_allow in user_roles:
+					frappe.msgprint("Invoice {0} exceed overdue limit days {1}".format(row.name, overdue_limt_days));
+				else:
+					frappe.throw("Invoice {0} exceed overdue limit days {1}".format(row.name, overdue_limt_days))
 
 def get_over_due_days(customer, company):
-    over_due_inv = frappe.db.sql("""SELECT max(datediff(curdate(), due_date))days 
-                                    FROM `tabSales Invoice` where docstatus = 1 and status = 'Overdue'
-                                    and customer = %(customer)s and company = %(company)s and outstanding_amount > 1""",
-                                    {'customer': customer,'company': company}, as_dict=True)
-    if over_due_inv:
-        if over_due_inv[0].days:
-            return over_due_inv[0].days
-        else:
-            return 0
-    else: 
-        return 0
+	over_due_inv = frappe.db.sql("""SELECT max(datediff(curdate(), due_date))days 
+									FROM `tabSales Invoice` where docstatus = 1 and status = 'Overdue'
+									and customer = %(customer)s and company = %(company)s and outstanding_amount > 1""",
+									{'customer': customer,'company': company}, as_dict=True)
+	if over_due_inv:
+		if over_due_inv[0].days:
+			return over_due_inv[0].days
+		else:
+			return 0
+	else: 
+		return 0
 
 def set_pick_list_barcode(self, args):
 
-    for row in self.locations:
-        barcode = get_item_barcode(row.item_code)
-        if barcode:
-            row.barcode = barcode
-            row.partial_barcode = barcode[-5:]
+	for row in self.locations:
+		barcode = get_item_barcode(row.item_code)
+		if barcode:
+			row.barcode = barcode
+			row.partial_barcode = barcode[-5:]
 
 def get_item_barcode(item_code):
-    barcode = frappe.db.sql(""" SELECT GROUP_CONCAT(barcode)barcode_str FROM `tabItem Barcode` where `tabItem Barcode`.parent = %(item_code)s  """,{'item_code':item_code}, as_dict=True)
-    if barcode:
-        if barcode[0].barcode_str:
-            return barcode[0].barcode_str
-        else:
-            return None
-    return None
+	barcode = frappe.db.sql(""" SELECT GROUP_CONCAT(barcode)barcode_str FROM `tabItem Barcode` where `tabItem Barcode`.parent = %(item_code)s  """,{'item_code':item_code}, as_dict=True)
+	if barcode:
+		if barcode[0].barcode_str:
+			return barcode[0].barcode_str
+		else:
+			return None
+	return None
 
 def set_sales_order_pick_list(self, args):
-    
-    for row in self.locations:
-        if row.sales_order:
-            self.sales_order = row.sales_order
-            break
+	
+	for row in self.locations:
+		if row.sales_order:
+			self.sales_order = row.sales_order
+			break
 
 def update_dn_with_pick_list(self, args):
-    
+	
 	for row in self.items:
 		if row.pick_list_item:
 			barcode = frappe.db.sql(""" SELECT parent FROM `tabPick List Item` where name = %(name)s """,{'name':row.pick_list_item}, as_dict=True)
@@ -102,15 +102,15 @@ def update_dn_with_pick_list(self, args):
 			return None
 
 def reward_point_entry_process(self, args):
-    programs = frappe.db.sql("""
+	programs = frappe.db.sql("""
 							SELECT name, customer, from_date, to_date, minimum_invoice_amount, 
 							invoice_currency, conversion_factor
 							FROM `tabReward Program` WHERE enabled = 1 AND curdate() BETWEEN from_date AND to_date
-                            and invoice_currency = %(invoice_currency)s and customer = %(customer)s""", 
+							and invoice_currency = %(invoice_currency)s and customer = %(customer)s""", 
 							{'invoice_currency': self.currency, 'customer': self.customer}, as_dict=True)
-    for row in programs:
-        if flt(abs(self.grand_total)) >= flt(row.minimum_invoice_amount):
-            point_accumulation = frappe.db.sql("""SELECT item_code, brand, net_amount,document_type, document_name, weight,b.parent 
+	for row in programs:
+		if flt(abs(self.grand_total)) >= flt(row.minimum_invoice_amount):
+			point_accumulation = frappe.db.sql("""SELECT item_code, brand, net_amount,document_type, document_name, weight,b.parent 
 													FROM `tabSales Invoice Item` a, `tabReward Weight Distribution` b
 													where a.brand = b.document_name
 													and a.parent = %(invoice)s
@@ -123,23 +123,23 @@ def reward_point_entry_process(self, args):
 													and a.parent = %(invoice)s
 													and b.document_type = 'Item'
 													and b.parent = %(program)s """,
-                                                	{'program':row.name, 'invoice': self.name}, as_dict=True)
-            
-            doc = frappe.new_doc('Reward Point Entry')
-            doc.program_name = row.name
-            doc.sales_invoice = self.name
-            doc.company = self.company
-            doc.customer = self.customer
-            doc.posting_date = self.posting_date
-            doc.currency = self.currency
-            doc.redeem_status = "Earned"
-            
-            total_point = 0.00
-            
-            for point in point_accumulation:
-                item_point = (flt(point.net_amount)/flt(row.conversion_factor)) * flt(point.weight)
-                total_point += (flt(point.net_amount)/flt(row.conversion_factor)) * flt(point.weight)
-                doc.append("allocation",{
+													{'program':row.name, 'invoice': self.name}, as_dict=True)
+			
+			doc = frappe.new_doc('Reward Point Entry')
+			doc.program_name = row.name
+			doc.sales_invoice = self.name
+			doc.company = self.company
+			doc.customer = self.customer
+			doc.posting_date = self.posting_date
+			doc.currency = self.currency
+			doc.redeem_status = "Earned"
+			
+			total_point = 0.00
+			
+			for point in point_accumulation:
+				item_point = (flt(point.net_amount)/flt(row.conversion_factor)) * flt(point.weight)
+				total_point += (flt(point.net_amount)/flt(row.conversion_factor)) * flt(point.weight)
+				doc.append("allocation",{
 					"document_type" : point.document_type,
 					"document_name" : point.document_name,
 					"net_amount" : point.net_amount,
@@ -147,21 +147,21 @@ def reward_point_entry_process(self, args):
 					"item_code" : point.item_code,
 					"point_earned" : item_point
 				})
-            
-            doc.total_point = total_point
-            doc.balance_point = total_point
-            doc.save(ignore_permissions=True)
+			
+			doc.total_point = total_point
+			doc.balance_point = total_point
+			doc.save(ignore_permissions=True)
 
 def reward_point_entry_process_cancel(self, args):
-    programs = frappe.db.sql("""
+	programs = frappe.db.sql("""
 							SELECT name, customer, from_date, to_date, minimum_invoice_amount, 
 							invoice_currency, conversion_factor
 							FROM `tabReward Program` WHERE enabled = 1 AND curdate() BETWEEN from_date AND to_date
-                            and invoice_currency = %(invoice_currency)s and customer = %(customer)s""", 
+							and invoice_currency = %(invoice_currency)s and customer = %(customer)s""", 
 							{'invoice_currency': self.currency, 'customer': self.customer}, as_dict=True)
-    for row in programs:
-        if flt(abs(self.grand_total)) >= flt(row.minimum_invoice_amount):
-            point_accumulation = frappe.db.sql("""SELECT item_code, brand, net_amount,document_type, document_name, weight,b.parent 
+	for row in programs:
+		if flt(abs(self.grand_total)) >= flt(row.minimum_invoice_amount):
+			point_accumulation = frappe.db.sql("""SELECT item_code, brand, net_amount,document_type, document_name, weight,b.parent 
 													FROM `tabSales Invoice Item` a, `tabReward Weight Distribution` b
 													where a.brand = b.document_name
 													and a.parent = %(invoice)s
@@ -174,23 +174,23 @@ def reward_point_entry_process_cancel(self, args):
 													and a.parent = %(invoice)s
 													and b.document_type = 'Item'
 													and b.parent = %(program)s """,
-                                                	{'program':row.name, 'invoice': self.name}, as_dict=True)
-            
-            doc = frappe.new_doc('Reward Point Entry')
-            doc.program_name = row.name
-            doc.sales_invoice = self.name
-            doc.company = self.company
-            doc.customer = self.customer
-            doc.posting_date = self.posting_date
-            doc.currency = self.currency
-            doc.redeem_status = "Earned"
-            
-            total_point = 0.00
-            
-            for point in point_accumulation:
-                item_point = (flt(point.net_amount)/flt(row.conversion_factor)) * flt(point.weight) *-1
-                total_point += (flt(point.net_amount)/flt(row.conversion_factor)) * flt(point.weight) *-1
-                doc.append("allocation",{
+													{'program':row.name, 'invoice': self.name}, as_dict=True)
+			
+			doc = frappe.new_doc('Reward Point Entry')
+			doc.program_name = row.name
+			doc.sales_invoice = self.name
+			doc.company = self.company
+			doc.customer = self.customer
+			doc.posting_date = self.posting_date
+			doc.currency = self.currency
+			doc.redeem_status = "Earned"
+			
+			total_point = 0.00
+			
+			for point in point_accumulation:
+				item_point = (flt(point.net_amount)/flt(row.conversion_factor)) * flt(point.weight) *-1
+				total_point += (flt(point.net_amount)/flt(row.conversion_factor)) * flt(point.weight) *-1
+				doc.append("allocation",{
 					"document_type" : point.document_type,
 					"document_name" : point.document_name,
 					"net_amount" : point.net_amount,
@@ -198,10 +198,10 @@ def reward_point_entry_process_cancel(self, args):
 					"item_code" : point.item_code,
 					"point_earned" : item_point
 				})
-                
-            doc.total_point = total_point
-            doc.balance_point = total_point
-            doc.save(ignore_permissions=True)
+				
+			doc.total_point = total_point
+			doc.balance_point = total_point
+			doc.save(ignore_permissions=True)
 
 def expire_reward_point():
 	reward_points = frappe.db.sql("""SELECT a.company, a.program_name, a.customer, a.redeem_status,
@@ -209,7 +209,7 @@ def expire_reward_point():
 									FROM `tabReward Point Entry` a, `tabReward Point Allocation` b, `tabReward Program` c
 									where a.name = b.parent and a.program_name = c.name
 									and a.redeem_status = 'Earned' and b.expired = 0""", as_dict=True)
-    
+	
 	for row in reward_points:
 		last_inv = get_customer_last_inv(row.company, row.customer, row.item_code)
 		
@@ -219,12 +219,12 @@ def expire_reward_point():
 
 def get_customer_last_inv(company, customer, item_code):
 	last_inv = frappe.db.sql("""SELECT a.company, a.customer, a.posting_date, b.item_code, 
-                               			datediff(curdate(), a.posting_date)diff 
+							   			datediff(curdate(), a.posting_date)diff 
 										FROM `tabSales Invoice` a, `tabSales Invoice Item` b
 										where a.name = b.parent and b.item_code = %(item_code)s and a.docstatus = 1
 										and a.company = %(company)s and a.customer = %(customer)s
 										order by a.posting_date desc limit 1""",
-                                        {'company': company, 'customer': customer, 'item_code': item_code} ,as_dict=True)
+										{'company': company, 'customer': customer, 'item_code': item_code} ,as_dict=True)
 	if last_inv:
 		return last_inv[0]
 	else:
@@ -232,7 +232,7 @@ def get_customer_last_inv(company, customer, item_code):
 
 def set_point_expiry(name, point, pe_name):
 	expiried = frappe.db.sql("""UPDATE `tabReward Point Allocation` SET expired = 1 WHERE name = %(name)s""",
-                                        {'name': name} ,as_dict=True)
+										{'name': name} ,as_dict=True)
 	
 	doc = frappe.get_doc('Reward Point Entry', pe_name)
 	doc.expired_point = doc.expired_point + point
@@ -243,10 +243,10 @@ def set_point_expiry(name, point, pe_name):
 	doc.save()
 
 def validate_same_warehouse(self, args):
-    
+	
 	for row in self.items:
 		item_wh_branch = frappe.db.get_value('Warehouse', row.warehouse, 'branch')
-        
+		
 		if item_wh_branch != self.customer_site:
 			frappe.msgprint('Row #{0}: Order Branch is {1}, But the Warehouse is {2}.'.format(frappe.bold(row.idx), frappe.bold(self.customer_site), frappe.bold(row.warehouse)));
 
@@ -349,3 +349,56 @@ def make_sales_invoice(source_name, target_doc=None):
 	doc.set_onload("ignore_price_list", True)
 
 	return doc
+
+def create_intercomapny_po(self, args):
+
+	if self.create_intercompany_po:
+		doc = frappe.new_doc('Purchase Order')
+		doc.supplier = self.po_supplier
+		doc.company = self.intercompany
+		doc.transaction_date = self.transaction_date
+		doc.schedule_date = self.transaction_date
+		doc.currency = self.currency
+		doc.payment_terms_template = self.payment_terms_template
+		doc.set_warehouse = frappe.db.get_value('Company', self.intercompany, 'default_in_transit_warehouse')
+		doc.intercompany_so = self.name
+		doc.docstatus = 0
+		
+		for row in self.items:
+			doc.append("items",{
+				"item_code" : row.item_code,
+				"schedule_date" : row.delivery_date,
+				"qty" : row.qty,
+				"rate" : row.rate,
+				"uom" : row.uom,
+				"price_list_rate" : row.price_list_rate,
+			})
+		
+		doc.insert(ignore_permissions=True)
+		frappe.msgprint(f"Inter Company PO created successfully. {get_link_to_form('Purchase Order', doc.name)}");
+
+def create_intercomapny_po_from_inv(self, args):
+
+	if self.create_inter_company_po:
+		doc = frappe.new_doc('Purchase Order')
+		doc.supplier = self.po_supplier
+		doc.company = self.inter_company
+		doc.transaction_date = self.posting_date
+		doc.schedule_date = self.posting_date
+		doc.currency = self.currency
+		doc.set_warehouse = frappe.db.get_value('Company', self.inter_company, 'default_in_transit_warehouse')
+		doc.inter_company_si = self.name
+		doc.docstatus = 0
+		
+		for row in self.items:
+			doc.append("items",{
+				"item_code" : row.item_code,
+				"schedule_date" : self.posting_date,
+				"qty" : row.qty,
+				"rate" : row.rate,
+				"uom" : row.uom,
+				"price_list_rate" : row.price_list_rate,
+			})
+		
+		doc.insert(ignore_permissions=True)
+		frappe.msgprint(f"Inter Company PO created successfully. {get_link_to_form('Purchase Order', doc.name)}");

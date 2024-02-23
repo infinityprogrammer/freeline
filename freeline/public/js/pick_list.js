@@ -13,6 +13,59 @@ frappe.ui.form.on('Pick List', {
             }, "fa fa-money");
         }
 
+        if(frm.doc.docstatus == 0){
+
+            frm.add_custom_button(__("Update Hand Picked Qty"), function() {
+
+                let d = new frappe.ui.Dialog({
+                    title: "Update Hand Picked Qty",
+                    fields: [
+                        {
+                            label: "Line Number",
+                            fieldname: "line_number",
+                            fieldtype: "Int",
+                            reqd: 1,
+                        },
+                        {
+                            label: "Hand Picked Qty",
+                            fieldname: "hand_picked_qty",
+                            fieldtype: "Float",
+                            reqd: 1,
+                        }
+                    ],
+                    size: "small", // small, large, extra-large
+                    primary_action_label: "Update Hand Picked Qty",
+                    primary_action(values) {
+                        console.log(values);
+
+                        var line_number = values.line_number;
+                        var hand_picked_qty = values.hand_picked_qty;
+
+                        frm.call(
+                            "update_pick_list_hand_picked_qty",
+                            {
+                                line_number: line_number,
+                                hand_picked_qty: hand_picked_qty,
+                            },
+                            (r) => {
+                                console.log(r);
+                                frappe.show_alert({
+                                    message: __("Hand Picked Qty Updated"),
+                                    indicator: "green",
+                                });
+                                frm.reload_doc();
+                            }
+                        );
+
+                        d.hide();
+                    },
+                });
+
+                d.show();
+                
+            }, "fa fa-money").addClass('btn btn-primary');
+        }
+
 
         var userRoles = frappe.user_roles;
         // console.log(userRoles);
