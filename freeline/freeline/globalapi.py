@@ -859,7 +859,24 @@ def update_pick_list_status(self, arg):
             
             updated_pick_list.append(row.pick_list_item)
 
+def get_uom_qty_sum_material_request(doc_name):
+    
+    uom_sum = frappe.db.sql(""" SELECT uom,sum(qty)qty FROM `tabMaterial Request Item` where parent = %(doc_name)s group by uom """,
+                                    {'doc_name': doc_name}, as_dict=True)
+    return uom_sum
 
+def get_item_volume(item_code):
+    
+    conversion = frappe.db.sql("""SELECT conversion_factor FROM `tabUOM Conversion Detail` where parent = %(item_code)s
+                                order by conversion_factor desc limit 1""",
+                                    {'item_code': item_code}, as_dict=True)
+    
+    hi_volume = frappe.db.get_value('Item', item_code, 'hi_uom_volume')
+    
+    if conversion and hi_volume:
+        return hi_volume/conversion[0].conversion_factor
+    else:
+        return 0
 
 # bench execute freeline.freeline.globalapi.generate_rebate_process
 

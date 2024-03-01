@@ -42,6 +42,7 @@ doctype_js = {
     "Delivery Note" : "public/js/delivery_note.js",
 	"Stock Reconciliation" : "public/js/stock_reconciliation.js",
 	"Sales Person" : "public/js/sales_person.js",
+	"Material Request" : "public/js/material_request.js",
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -303,7 +304,9 @@ fixtures = [
                 "Sales Invoice-po_supplier",
                 "Purchase Order-inter_company_si",
                 "Item-supplier_item_code",
-                "Item-main_barcode"
+                "Item-main_barcode",
+                "Material Request Item-source_wh_qty",
+                "Material Request Item-target_wh_qty"
             ]
         ]
     ]},
@@ -356,5 +359,7 @@ jenv = {
         "get_unallocated_payment_not_in_ageing_iqd:freeline.freeline.doctype.party_statement.party_statement.get_unallocated_payment_not_in_ageing_iqd",
         "get_not_due_amount:freeline.freeline.doctype.party_statement.party_statement.get_not_due_amount",
         "get_uom_qty_sum_order:freeline.freeline.globalapi.get_uom_qty_sum_order",
+        "get_uom_qty_sum_material_request:freeline.freeline.globalapi.get_uom_qty_sum_material_request",
+        "get_item_volume:freeline.freeline.globalapi.get_item_volume",
     ]
 }
